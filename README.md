@@ -19,6 +19,6 @@ Document this library.
 
 ## License
 
-Copyright (C) 2012 FIXME
+Copyright (C) 2012 Gary Fredericks
 
 Distributed under the Eclipse Public License, the same as Clojure.
