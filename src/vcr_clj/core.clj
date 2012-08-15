@@ -48,8 +48,8 @@
     (func)))
 
 (defn- cassette-file
-  [name]
-  (let [f (fs/file "cassettes" (str name ".clj"))]
+  [cassette-name]
+  (let [f (fs/file "cassettes" (str (name cassette-name) ".clj"))]
     (-> f fs/parent fs/mkdirs)
     f))
 
