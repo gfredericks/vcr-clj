@@ -1,4 +1,4 @@
-(defproject com.gfredericks/vcr-clj "0.0.2"
+(defproject com.gfredericks/vcr-clj "0.0.3"
   :description "HTTP recording/playback for Clojure"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [fs "1.0.0"]
