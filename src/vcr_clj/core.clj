@@ -2,7 +2,8 @@
   (:use [clojure.pprint :only [pprint]])
   (:require [fs.core :as fs]
             [clojure.walk :as wk]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            clj-http.core))
 
 ;; * TODO
 ;; ** Handle streams
