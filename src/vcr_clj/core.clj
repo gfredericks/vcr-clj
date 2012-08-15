@@ -7,37 +7,54 @@
 
 ;; * TODO
 ;; ** Handle streams
-;; ** Actually check that response matches request. Maybe allow out-of-order.
+
+(defn- update
+  [m k f]
+  (update-in m [k] f))
+
+(defn- map-responses
+  [f cassette]
+  (into {} (for [[req-key resps] cassette]
+             [req-key (map f resps)])))
 
 (defn- write-cassette
   [file cassette]
   (let [writer (io/writer file)]
     (binding [*out* writer]
       (prn
-       (for [resp cassette]
-         (update-in resp [:body] #(String. %)))))))
+       (map-responses (fn [m] (update m :body #(String. %))) cassette)))))
 
 (defn- read-cassette
   [file]
-  (for [resp (-> file slurp read-string)]
-    (update-in resp [:body] #(.getBytes %))))
+  (->> file
+       slurp
+       read-string
+       (map-responses (fn [m] (update m :body #(.getBytes %))))))
+
+(def req-keys
+  [:uri :server-name :query-string :request-method])
 
 (defn- fake-request
   "Given a cassette, returns a replacement (stateful) request function."
   [cassette]
-  ;; For first try, just ignore the request and return the responses in order
   (let [remaining (atom cassette)]
     (fn [req]
-      (let [resp (first @remaining)]
-        (swap! remaining rest)
+      ;; TODO: use a ref instead of an atom. This isn't thread-safe.
+      (let [req-key (select-keys req req-keys)
+            resp (first (@remaining req-key))]
+        (swap! remaining update req-key rest)
         resp))))
 
 (defn- record
   [func]
   (let [orig-request clj-http.core/request
-        responses (atom [])]
-    (with-redefs [clj-http.core/request (fn [req] (let [resp (orig-request req)]
-                                                    (swap! responses conj resp)
+        responses (atom {})]
+    (with-redefs [clj-http.core/request (fn [req] (let [resp (orig-request req)
+                                                        req-key (select-keys req req-keys)]
+                                                    (swap! responses
+                                                           update
+                                                           req-key
+                                                           (fn [x] (conj (or x []) resp)))
                                                     resp))]
       (func))
     @responses))
