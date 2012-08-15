@@ -37,13 +37,13 @@
 (defn- fake-request
   "Given a cassette, returns a replacement (stateful) request function."
   [cassette]
-  (let [remaining (atom cassette)]
+  (let [remaining (ref cassette)]
     (fn [req]
-      ;; TODO: use a ref instead of an atom. This isn't thread-safe.
-      (let [req-key (select-keys req req-keys)
-            resp (first (@remaining req-key))]
-        (swap! remaining update req-key rest)
-        resp))))
+      (dosync
+       (let [req-key (select-keys req req-keys)
+             resp (first (@remaining req-key))]
+         (alter remaining update req-key rest)
+         resp)))))
 
 (defn- record
   [func]
