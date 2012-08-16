@@ -80,19 +80,15 @@
     "transfer-encoding" "chunked",
     "date" "Thu, 16 Aug 2012 01:11:12 GMT",
     "connection" "close"},
-   :body [31 -117 8 0 0 0 0 0 0 0 -117 -114 5 0 41 -69 76 13 2 0 0 0]})
+   :body #vcr-clj.core/bytes [31 -117 8 0 0 0 0 0 0 0 -117 -114 5 0 41 -69 76 13 2 0 0 0]})
 
 (deftest gzip-test
-  (let [gzip
-        (update-in gzipp'd-response [:body]
-                   (fn [x]
-                     (String. (into-array Byte/TYPE x))))]
-    (fs/mkdir "cassettes")
-    (spit "cassettes/foob.clj" (pr-str {{:uri "/hoot"
-                                         :server-name "localhost"
-                                         :server-port 28366
-                                         :query-string nil
-                                         :request-method :get}
-                                        [gzip]}))
-    (with-cassette :foob
-      (is (= "[]" (get "/hoot"))))))
+  (fs/mkdir "cassettes")
+  (spit "cassettes/foob.clj" (pr-str {{:uri "/hoot"
+                                       :server-name "localhost"
+                                       :server-port 28366
+                                       :query-string nil
+                                       :request-method :get}
+                                      [gzipp'd-response]}))
+  (with-cassette :foob
+    (is (= "[]" (get "/hoot")))))

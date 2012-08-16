@@ -7,29 +7,34 @@
 
 ;; * TODO
 ;; ** Handle streams
+;; ** Serialize byte-arrays as base-64 strings instead of number-lists
 
 (defn- update
   [m k f]
   (update-in m [k] f))
 
-(defn- map-responses
-  [f cassette]
-  (into {} (for [[req-key resps] cassette]
-             [req-key (map f resps)])))
+(defn vec->bytes
+  [nums]
+  (into-array Byte/TYPE nums))
+
+(defmethod print-method (type (byte-array 2))
+  [ba pw]
+  (.append pw (str "#vcr-clj.core/bytes ["))
+  (doseq [b ba]
+    (.append pw (str b " ")))
+  (.append pw "]"))
 
 (defn- write-cassette
   [file cassette]
   (let [writer (io/writer file)]
     (binding [*out* writer]
-      (prn
-       (map-responses (fn [m] (update m :body #(String. %))) cassette)))))
+      (prn cassette))))
 
 (defn- read-cassette
   [file]
   (->> file
        slurp
-       read-string
-       (map-responses (fn [m] (update m :body #(.getBytes %))))))
+       read-string))
 
 (def req-keys
   [:uri :server-name :server-port :query-string :request-method])

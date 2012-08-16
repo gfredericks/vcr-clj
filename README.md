@@ -5,6 +5,8 @@ record HTTP interactions as you run your tests, and use the recordings later to
 play back the interaction so you can run your tests in a repeatable way without
 needing the external components to be available/accessible.
 
+vcr-clj requires Clojure 1.4 or later.
+
 ## Usage
 
 Document this library.
