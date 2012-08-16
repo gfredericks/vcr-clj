@@ -32,7 +32,7 @@
        (map-responses (fn [m] (update m :body #(.getBytes %))))))
 
 (def req-keys
-  [:uri :server-name :query-string :request-method])
+  [:uri :server-name :server-port :query-string :request-method])
 
 (defn- fake-request
   "Given a cassette, returns a replacement (stateful) request function."
