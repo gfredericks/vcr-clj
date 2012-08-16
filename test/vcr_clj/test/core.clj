@@ -80,7 +80,7 @@
     "transfer-encoding" "chunked",
     "date" "Thu, 16 Aug 2012 01:11:12 GMT",
     "connection" "close"},
-   :body #vcr-clj.core/bytes [31 -117 8 0 0 0 0 0 0 0 -117 -114 5 0 41 -69 76 13 2 0 0 0]})
+   :body #vcr-clj.core/bytes "H4sIAAAAAAAAAIuOBQApu0wNAgAAAA=="})
 
 (deftest gzip-test
   (fs/mkdir "cassettes")

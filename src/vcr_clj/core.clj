@@ -3,26 +3,25 @@
   (:require [fs.core :as fs]
             [clojure.walk :as wk]
             [clojure.java.io :as io]
+            [clojure.data.codec.base64 :as b64]
             clj-http.core))
 
 ;; * TODO
 ;; ** Handle streams
-;; ** Serialize byte-arrays as base-64 strings instead of number-lists
 
 (defn- update
   [m k f]
   (update-in m [k] f))
 
-(defn vec->bytes
-  [nums]
-  (into-array Byte/TYPE nums))
+(defn str->bytes
+  [s]
+  (b64/decode (.getBytes s)))
 
 (defmethod print-method (type (byte-array 2))
   [ba pw]
-  (.append pw (str "#vcr-clj.core/bytes ["))
-  (doseq [b ba]
-    (.append pw (str b " ")))
-  (.append pw "]"))
+  (.append pw (str "#vcr-clj.core/bytes \""))
+  (.append pw (String. (b64/encode ba)))
+  (.append pw "\""))
 
 (defn- write-cassette
   [file cassette]

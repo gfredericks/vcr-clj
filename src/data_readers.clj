@@ -1,1 +1,1 @@
-{vcr-clj.core/bytes vcr-clj.core/vec->bytes}
+{vcr-clj.core/bytes vcr-clj.core/str->bytes}
