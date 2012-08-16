@@ -42,6 +42,8 @@
       (dosync
        (let [req-key (select-keys req req-keys)
              resp (first (@remaining req-key))]
+         (when-not resp
+           (throw (Exception. (str "No response in vcr-clj cassette for request: " (pr-str req)))))
          (alter remaining update req-key rest)
          resp)))))
 
