@@ -1,39 +1,16 @@
 (ns vcr-clj.core
   (:use [clojure.pprint :only [pprint]])
   (:require [fs.core :as fs]
-            [clojure.walk :as wk]
-            [clojure.java.io :as io]
-            [clojure.data.codec.base64 :as b64]
-            clj-http.core))
-
-;; * TODO
-;; ** Handle streams
+            [clj-http.core]
+            [vcr-clj.cassettes :refer [read-cassette
+                                       write-cassette]]))
 
 (defn- update
   [m k f]
   (update-in m [k] f))
 
-(defn str->bytes
-  [s]
-  (b64/decode (.getBytes s)))
-
-(defmethod print-method (type (byte-array 2))
-  [ba pw]
-  (.append pw (str "#vcr-clj.core/bytes \""))
-  (.append pw (String. (b64/encode ba)))
-  (.append pw "\""))
-
-(defn- write-cassette
-  [file cassette]
-  (let [writer (io/writer file)]
-    (binding [*out* writer]
-      (prn cassette))))
-
-(defn- read-cassette
-  [file]
-  (->> file
-       slurp
-       read-string))
+;; * TODO
+;; ** Handle streams
 
 (def req-keys
   [:uri :server-name :server-port :query-string :request-method])
@@ -44,6 +21,7 @@
   "Predicate which, given a ring request, determines if it should
   be recorded or passed through."
   (constantly true))
+
 (def ^:dynamic req-key
   "Given a ring request, returns a key that it should be grouped
   under. Requests are allowed to come out of order as long as

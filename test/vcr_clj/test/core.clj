@@ -39,8 +39,8 @@
 (defn get
   [path]
   (-> (str "http://localhost:28366" path)
-      client/get
-      :body))
+      (client/get)
+      (:body)))
 
 (deftest basic-test
   (with-jetty-server hehe-okay-server
@@ -80,7 +80,7 @@
     "transfer-encoding" "chunked",
     "date" "Thu, 16 Aug 2012 01:11:12 GMT",
     "connection" "close"},
-   :body #vcr-clj.core/bytes "H4sIAAAAAAAAAIuOBQApu0wNAgAAAA=="})
+   :body #vcr-clj/bytes "H4sIAAAAAAAAAIuOBQApu0wNAgAAAA=="})
 
 (deftest gzip-test
   (fs/mkdir "cassettes")

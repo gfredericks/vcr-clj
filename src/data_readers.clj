@@ -1,1 +1,1 @@
-{vcr-clj.core/bytes vcr-clj.core/str->bytes}
+{vcr-clj/bytes vcr-clj.cassettes/str->bytes}
