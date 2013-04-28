@@ -5,6 +5,74 @@
             [vcr-clj.cassettes :refer [read-cassette
                                        write-cassette]]))
 
+(defn ^:private var-name
+  [var]
+  (let [{:keys [ns name]} (meta var)]
+    (str ns "/" name)))
+
+;; TODO: add the ability to configure whether out-of-order
+;; calls are allowed, or repeat calls, or such and such.
+(defn record
+  "Each spec is:
+    {
+     :var a var
+     :arg-key-fn a function of the same arguments as the var that is
+                 expected to return a value that can be stored and
+                 compared for equality to the expected call. Defaults
+                 to clojure.core/vector.
+    }
+
+   Redefs the vars to record the calls, and returns [val cassette]
+   where val is the return value of func."
+  [specs func]
+  (let [calls (atom (zipmap (map (comp var-name :var) specs)
+                            (repeat [])))
+
+        redeffings
+        (into {}
+              (for [{:keys [var arg-key-fn]
+                     :or {arg-key-fn vector}}
+                    specs
+                    :let [orig-fn (deref var)
+                          the-var-name (var-name var)
+                          wrapped (fn [& args]
+                                    (let [res (apply orig-fn args)
+                                          k (apply arg-key-fn args)
+                                          call {:args k
+                                                :return res}]
+                                      (swap! calls update-in
+                                             [the-var-name]
+                                             conj call)
+                                      res))]]
+                [var wrapped]))
+        func-return (with-redefs-fn redeffings func)
+        cassette {:calls @calls}]
+    [func-return cassette]))
+
+;; Assuming that order is only preserved for calls to any var in
+;; particular, not necessarily all the vars considered together.
+(defn playback
+  [specs cassette func]
+  (let [redeffings
+        (into {}
+              (for [{:keys [var arg-key-fn]
+                     :or {arg-key-fn vector}}
+                    specs
+                    :let [calls (atom (get-in cassette
+                                              [:calls (var-name var)]))
+                          next-call #(do (assert (seq @calls))
+                                         (let [x (first @calls)]
+                                           (swap! calls rest)
+                                           x))
+                          wrapped (fn [& args]
+                                    (let [k (apply arg-key-fn args)
+                                          {args' :args,
+                                           x :return} (next-call)]
+                                      (assert (= k args'))
+                                      x))]]
+                [var wrapped]))]
+    (with-redefs-fn redeffings func)))
+
 (defn- update
   [m k f]
   (update-in m [k] f))
