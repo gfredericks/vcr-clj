@@ -84,6 +84,8 @@
 
 (deftest gzip-test
   (fs/mkdir "cassettes")
+  ;; this won't work if we change the cassette format; might be able
+  ;; to do a regular ring server??
   (spit "cassettes/foob.clj" (pr-str {{:uri "/hoot"
                                        :server-name "localhost"
                                        :server-port 28366

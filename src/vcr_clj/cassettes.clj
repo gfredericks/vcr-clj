@@ -11,9 +11,10 @@
 ;; hiredman's lib instead of doing it ourselves.
 (defmethod print-method (type (byte-array 2))
   [ba pw]
-  (.append pw (str "#vcr-clj/bytes \""))
-  (.append pw (String. (b64/encode ba)))
-  (.append pw "\""))
+  (doto pw
+    (.append "#vcr-clj/bytes \"")
+    (.append (String. (b64/encode ba)))
+    (.append "\"")))
 
 (defn write-cassette
   [file cassette]
@@ -21,6 +22,7 @@
     (binding [*out* writer]
       (prn cassette))))
 
+;; TODO: use clojure.edn?
 (defn read-cassette
   [file]
   (->> file

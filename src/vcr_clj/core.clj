@@ -1,5 +1,4 @@
 (ns vcr-clj.core
-  (:use [clojure.pprint :only [pprint]])
   (:require [fs.core :as fs]
             [clj-http.core]
             [vcr-clj.cassettes :refer [read-cassette
