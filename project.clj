@@ -4,5 +4,5 @@
                  [org.clojure/data.codec "0.1.0"]
                  [fs "1.3.3"]]
   :profiles {:dev {:dependencies
-                   [[ring/ring-jetty-adapter "1.1.2"]
-                    [clj-http "0.5.3"]]}})
+                   [[clj-http "0.5.3"]
+                    [ring/ring-jetty-adapter "1.1.2"]]}})
