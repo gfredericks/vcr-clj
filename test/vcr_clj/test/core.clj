@@ -1,10 +1,10 @@
 (ns vcr-clj.test.core
   (:refer-clojure :exclude [get])
-  (:use [vcr-clj.core])
-  (:use [clojure.test])
-  (:require [ring.adapter.jetty :as jetty]
-            [clj-http.client :as client]
-            [fs.core :as fs]))
+  (:require [clj-http.client :as client]
+            [clojure.test :refer :all]
+            [fs.core :as fs]
+            [ring.adapter.jetty :as jetty]
+            [vcr-clj.clj-http :refer [with-cassette]]))
 
 (def delete-cassettes-after-test
   (fn [test]
@@ -86,11 +86,13 @@
   (fs/mkdir "cassettes")
   ;; this won't work if we change the cassette format; might be able
   ;; to do a regular ring server??
-  (spit "cassettes/foob.clj" (pr-str {{:uri "/hoot"
-                                       :server-name "localhost"
-                                       :server-port 28366
-                                       :query-string nil
-                                       :request-method :get}
-                                      [gzipp'd-response]}))
+  (spit "cassettes/foob.clj" (pr-str {:calls
+                                      [{:var-name "clj-http.core/request"
+                                        :arg-key {:uri "/hoot"
+                                                  :server-name "localhost"
+                                                  :server-port 28366
+                                                  :query-string nil
+                                                  :request-method :get}
+                                        :return gzipp'd-response}]}))
   (with-cassette :foob
     (is (= "[]" (get "/hoot")))))

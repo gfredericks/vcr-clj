@@ -1,6 +1,7 @@
 (ns vcr-clj.cassettes
   (:require [clojure.data.codec.base64 :as b64]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [fs.core :as fs]))
 
 (defn str->bytes
   [s]
@@ -16,15 +17,27 @@
     (.append (String. (b64/encode ba)))
     (.append "\"")))
 
+(defn cassette-file
+  "Returns the File object for a given cassette name. Ensures parent
+   directories exist."
+  [cassette-name]
+  (doto (fs/file "cassettes" (str (name cassette-name) ".clj"))
+    (-> fs/parent fs/mkdirs)))
+
+(defn cassette-exists?
+  [name]
+  (-> name cassette-file fs/exists?))
+
 (defn write-cassette
-  [file cassette]
-  (let [writer (io/writer file)]
+  [name cassette]
+  (with-open [writer (-> name cassette-file io/writer)]
     (binding [*out* writer]
       (prn cassette))))
 
 ;; TODO: use clojure.edn?
 (defn read-cassette
-  [file]
-  (->> file
-       slurp
-       read-string))
+  [name]
+  (-> name
+      cassette-file
+      slurp
+      read-string))
