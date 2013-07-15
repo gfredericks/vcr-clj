@@ -5,25 +5,17 @@
 (def default-req-keys
   [:uri :server-name :server-port :query-string :request-method])
 
-;; These vars are the primary method for customizing the behavior of
-;; vcr-clj.
-
-;; I think we stopped supporting this
-(def ^:dynamic *record?*
-  "Predicate which, given a ring request, determines if it should
-  be recorded or passed through."
-  (constantly true))
-
-(def ^:dynamic *req-key*
-  "Given a ring request, returns a key that it should be grouped
-  under. Requests are allowed to come out of order as long as
-  they are in-order with respect to other requests with the same
-  key."
-  #(select-keys % default-req-keys))
-
 (defmacro with-cassette
+  "Helper for running a cassette on clj-http.core/request. Optionally
+   takes an options map as the second arg, to supply extra keys to
+   the spec map passed to vcr-clj.core/with-cassette."
   [name & body]
-  `(vcr/with-cassette ~name
-     [{:var        (var clj-http.core/request)
-       :arg-key-fn *req-key*}]
-     ~@body))
+  (let [[opts body] (if (and (> (count body) 1)
+                             (map? (first body)))
+                      [(first body) (rest body)]
+                      [{} body])]
+    `(vcr/with-cassette ~name
+       [(-> ~opts
+            (assoc :var (var clj-http.core/request))
+            (update-in [:arg-key-fn] #(or % (fn [req#] (select-keys req# default-req-keys)))))]
+       ~@body)))

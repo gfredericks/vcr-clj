@@ -11,24 +11,16 @@
 ;; TODO: add the ability to configure whether out-of-order
 ;; calls are allowed, or repeat calls, or such and such.
 (defn record
-  "Each spec is:
-    {
-     :var a var
-     :arg-key-fn a function of the same arguments as the var that is
-                 expected to return a value that can be stored and
-                 compared for equality to the expected call. Defaults
-                 to clojure.core/vector.
-    }
-
-   Redefs the vars to record the calls, and returns [val cassette]
+  "Redefs the vars to record the calls, and returns [val cassette]
    where val is the return value of func."
   [specs func]
   (let [calls (atom [])
 
         redeffings
         (into {}
-              (for [{:keys [var arg-key-fn]
-                     :or {arg-key-fn vector}}
+              (for [{:keys [var arg-key-fn recordable?]
+                     :or {arg-key-fn vector
+                          recordable? (constantly true)}}
                     specs
                     :let [orig-fn (deref var)
                           the-var-name (var-name var)
@@ -38,7 +30,8 @@
                                           call {:var-name the-var-name
                                                 :arg-key k
                                                 :return res}]
-                                      (swap! calls conj call)
+                                      (when (apply recordable? args)
+                                        (swap! calls conj call))
                                       res))]]
                 [var wrapped]))
         func-return (with-redefs-fn redeffings func)
@@ -80,13 +73,17 @@
   (let [the-playbacker (playbacker cassette :key)
         redeffings
         (into {}
-              (for [{:keys [var arg-key-fn]
-                     :or {arg-key-fn vector}}
+              (for [{:keys [var arg-key-fn recordable?]
+                     :or {arg-key-fn vector
+                          recordable? (constantly true)}}
                     specs
-                    :let [the-var-name (var-name var)
+                    :let [orig (deref var)
+                          the-var-name (var-name var)
                           wrapped (fn [& args]
                                     (let [k (apply arg-key-fn args)]
-                                      (:return (the-playbacker the-var-name k))))]]
+                                      (if (apply recordable? args)
+                                        (:return (the-playbacker the-var-name k))
+                                        (apply orig args))))]]
                 [var wrapped]))]
     (with-redefs-fn redeffings func)))
 
@@ -111,5 +108,17 @@
         return))))
 
 (defmacro with-cassette
+  "Each spec is:
+    {
+     :var a var
+     :arg-key-fn  a function of the same arguments as the var that is
+                  expected to return a value that can be stored and
+                  compared for equality to the expected call. Defaults
+                  to clojure.core/vector.
+     :recordable? a predicate with the same arg signature as the var.
+                  If the predicate returns false/nil on any call, the
+                  call will be passed through transparently to the
+                  original function without recording/playback.
+    }"
   [cname specs & body]
   `(with-cassette-fn* ~cname ~specs (fn [] ~@body)))
