@@ -1,5 +1,6 @@
 (ns vcr-clj.clj-http
-  "Helpers for using vcr-clj with clj-http."
+  "Helpers for using vcr-clj with clj-http. Assumes clj-http (which is
+   not an explicit dependency of vcr-clj) has already been required."
   (:require [vcr-clj.core :as vcr]))
 
 (def default-req-keys
