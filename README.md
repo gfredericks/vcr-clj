@@ -13,6 +13,10 @@ Any clojure function (er, var) can be recorded and played back.
 
 vcr-clj requires Clojure 1.4 or later.
 
+## Obtainage
+
+`[com.gfredericks/vcr-clj "0.3.0"]`
+
 ## Usage
 
 An example with `clojure.test`:
