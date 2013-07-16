@@ -8,6 +8,12 @@
   (let [{:keys [ns name]} (meta var)]
     (str ns "/" name)))
 
+(defn ^:private add-meta-from
+  "Returns a version of x1 with its metadata set to the metadata
+   of x2."
+  [x1 x2]
+  (with-meta x1 (meta x2)))
+
 ;; TODO: add the ability to configure whether out-of-order
 ;; calls are allowed, or repeat calls, or such and such.
 (defn record
@@ -33,7 +39,7 @@
                                       (when (apply recordable? args)
                                         (swap! calls conj call))
                                       res))]]
-                [var wrapped]))
+                [var (add-meta-from wrapped orig-fn)]))
         func-return (with-redefs-fn redeffings func)
         cassette {:calls @calls}]
     [func-return cassette]))
@@ -84,7 +90,7 @@
                                       (if (apply recordable? args)
                                         (:return (the-playbacker the-var-name k))
                                         (apply orig args))))]]
-                [var wrapped]))]
+                [var (add-meta-from wrapped orig)]))]
     (with-redefs-fn redeffings func)))
 
 (defn- update
