@@ -1,10 +1,67 @@
 (ns vcr-clj.clj-http
   "Helpers for using vcr-clj with clj-http. Assumes clj-http (which is
-   not an explicit dependency of vcr-clj) has already been required."
-  (:require [vcr-clj.core :as vcr]))
+   not an explicit dependency of vcr-clj) has already been required.
+
+   Main entry point is with-cassette, a macro that calls
+   vcr-clj.core/with-cassette with args for overwriting
+   clj-http.core/request."
+  (:require [clojure.data.codec.base64 :as b64]
+            [vcr-clj.core :as vcr]))
+
+;;
+;; InputStream serializability -- we convert InputStreams to a special
+;; kind of ByteArrayInputStream that serializes without having to
+;; consume itself.
+;;
+
+
+(defn serializablize-input-stream
+  [input-stream]
+  (let [bytes (-> input-stream slurp .getBytes)]
+    (proxy [java.io.ByteArrayInputStream clojure.lang.IDeref clojure.lang.IMeta] [bytes]
+      ;; we implement IDeref as a simple way of allowing print-method
+      ;; to pull the bytes out
+      (deref [] bytes)
+      ;; exposing :type metadata allows us to define custom behavior
+      ;; for the print-method multimethod below
+      (meta [] {:type ::serializable-input-stream}))))
+
+(defmethod print-method ::serializable-input-stream
+  [x ^java.io.Writer pw]
+  (doto pw
+    (.write "#vcr-clj/input-stream \"")
+    (.write (String. (b64/encode @x)))
+    (.write "\"")))
+
+(defn read-input-stream
+  [hex-str]
+  (-> hex-str
+      .getBytes
+      b64/decode
+      java.io.ByteArrayInputStream.
+      serializablize-input-stream))
+
+;;
+;; vcr stuff
+;;
 
 (def default-req-keys
   [:uri :server-name :server-port :query-string :request-method])
+
+(defn assoc-or
+  "Returns (assoc m k v) when m does not have the key k."
+  [m k v]
+  (cond-> m (not (contains? m k)) (assoc k v)))
+
+
+(defn serializablize-body
+  "When x has a :body entry that is an input-stream, reads its
+   contents and converts it to a serializable kind of
+   ByteArrayInputStream."
+  [x]
+  (cond-> x
+          (instance? java.io.InputStream (:body x))
+          (update-in [:body] serializablize-input-stream)))
 
 (defmacro with-cassette
   "Helper for running a cassette on clj-http.core/request. Optionally
@@ -18,5 +75,6 @@
     `(vcr/with-cassette ~name
        [(-> ~opts
             (assoc :var (var clj-http.core/request))
-            (update-in [:arg-key-fn] #(or % (fn [req#] (select-keys req# default-req-keys)))))]
+            (assoc-or :arg-key-fn (fn [req#] (select-keys req# default-req-keys)))
+            (assoc-or :return-transformer serializablize-body))]
        ~@body)))

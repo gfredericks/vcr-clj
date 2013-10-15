@@ -5,5 +5,5 @@
                  [fs "1.3.3"]]
   :profiles {:dev {:dependencies
                    [[bond "0.2.5"]
-                    [clj-http "0.5.3"]
+                    [clj-http "0.7.7"]
                     [ring/ring-jetty-adapter "1.1.2"]]}})

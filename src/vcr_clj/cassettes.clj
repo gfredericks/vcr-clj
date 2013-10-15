@@ -11,7 +11,7 @@
 ;; we could probably move the bytes stuff there. Also we could use
 ;; hiredman's lib instead of doing it ourselves.
 (defmethod print-method (type (byte-array 2))
-  [ba pw]
+  [ba ^java.io.Writer pw]
   (doto pw
     (.append "#vcr-clj/bytes \"")
     (.append (String. (b64/encode ba)))

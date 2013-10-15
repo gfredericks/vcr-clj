@@ -24,14 +24,15 @@
 
         redeffings
         (into {}
-              (for [{:keys [var arg-key-fn recordable?]
+              (for [{:keys [var arg-key-fn recordable? return-transformer]
                      :or {arg-key-fn vector
-                          recordable? (constantly true)}}
+                          recordable? (constantly true)
+                          return-transformer identity}}
                     specs
                     :let [orig-fn (deref var)
                           the-var-name (var-name var)
                           wrapped (fn [& args]
-                                    (let [res (apply orig-fn args)
+                                    (let [res (return-transformer (apply orig-fn args))
                                           k (apply arg-key-fn args)
                                           call {:var-name the-var-name
                                                 :arg-key k
@@ -125,6 +126,10 @@
                   If the predicate returns false/nil on any call, the
                   call will be passed through transparently to the
                   original function without recording/playback.
+     :return-transformer
+                  a function that the return value will be passed through
+                  while recording, which can be useful for doing things
+                  like ensuring serializability.
     }"
   [cname specs & body]
   `(with-cassette-fn* ~cname ~specs (fn [] ~@body)))
