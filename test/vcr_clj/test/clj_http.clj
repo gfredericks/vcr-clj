@@ -92,3 +92,11 @@
                                         :return gzipp'd-response}]}))
   (with-cassette :foob
     (is (= "[]" (get "/hoot")))))
+
+(deftest gzip-recording-test
+  (with-redefs [clj-http.core/request
+                (constantly
+                 (update-in gzipp'd-response [:body]
+                            #(java.io.ByteArrayInputStream. %)))]
+    (with-cassette :tamborines
+      (is (= "[]" (get "/not/a/meaningful/path"))))))

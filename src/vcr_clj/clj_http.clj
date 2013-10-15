@@ -15,9 +15,19 @@
 ;;
 
 
+(defn slurp-bytes
+  "Consumes an input stream and returns a byte array of its contents."
+  [^java.io.InputStream is]
+  (let [baos (java.io.ByteArrayOutputStream.)]
+    (loop [b (.read is)]
+      (if (neg? b)
+        (.toByteArray baos)
+        (do (.write baos b)
+            (recur (.read is)))))))
+
 (defn serializablize-input-stream
   [input-stream]
-  (let [bytes (-> input-stream slurp .getBytes)]
+  (let [bytes (-> input-stream slurp-bytes)]
     (proxy [java.io.ByteArrayInputStream clojure.lang.IDeref clojure.lang.IMeta] [bytes]
       ;; we implement IDeref as a simple way of allowing print-method
       ;; to pull the bytes out
