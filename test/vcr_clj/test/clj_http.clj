@@ -4,6 +4,7 @@
             [clojure.test :refer :all]
             [fs.core :as fs]
             [ring.adapter.jetty :as jetty]
+            [ring.util.response :as resp]
             [vcr-clj.clj-http :refer [with-cassette]]
             [vcr-clj.test.helpers :as help]))
 
@@ -100,3 +101,24 @@
                             #(java.io.ByteArrayInputStream. %)))]
     (with-cassette :tamborines
       (is (= "[]" (get "/not/a/meaningful/path"))))))
+
+
+;;
+;; https://github.com/fredericksgary/vcr-clj/issues/2
+;;
+
+(defn redirecting-server
+  [{:keys [uri]}]
+  (case uri
+    "/foo" (assoc (resp/redirect "/bar")
+             :body "not bar")
+    "/bar" {:status 200
+            :body "bar"
+            :headers {}}))
+
+(deftest redirect-test
+  (with-jetty-server redirecting-server
+    (with-cassette :whale
+      (is (= "bar" (get "/foo")))))
+  (with-cassette :whale
+    (is (= "bar" (get "/foo")))))
