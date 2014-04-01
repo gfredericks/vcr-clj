@@ -8,6 +8,21 @@
   (:require [clojure.data.codec.base64 :as b64]
             [vcr-clj.core :as vcr]))
 
+;; Support serialization for the HeaderMap type when it is around
+(try (require 'clj-http.headers)
+     (let [c (resolve 'clj_http.headers.HeaderMap)]
+       (defmethod print-method c
+         [hm pw]
+         (.write pw "#=(clj-http.headers/header-map")
+         (doseq [k (keys hm)
+                 :let [v (get hm k)]]
+           (.write pw " ")
+           (print-method k pw)
+           (.write pw " ")
+           (print-method v pw))
+         (.write pw ")")))
+     (catch Throwable t))
+
 ;;
 ;; InputStream serializability -- we convert InputStreams to a special
 ;; kind of ByteArrayInputStream that serializes without having to
