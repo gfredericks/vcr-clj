@@ -104,15 +104,10 @@
 (defn with-cassette-fn*
   [cassette-name specs func]
   (if (cassette-exists? cassette-name)
-    (do
-      (println "Running test with existing" cassette-name "cassette...")
-      (playback specs (read-cassette cassette-name) func))
-    (do
-      (println "Recording new" cassette-name "cassette...")
-      (let [[return cassette] (record specs func)]
-        (println "Serializing...")
-        (write-cassette cassette-name cassette)
-        return))))
+    (playback specs (read-cassette cassette-name) func)
+    (let [[return cassette] (record specs func)]
+      (write-cassette cassette-name cassette)
+      return)))
 
 (defmacro with-cassette
   "Each spec is:
