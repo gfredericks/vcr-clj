@@ -1,21 +1,8 @@
 (ns vcr-clj.cassettes
-  (:require [clojure.data.codec.base64 :as b64]
+  (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [fs.core :as fs]))
-
-(defn str->bytes
-  [s]
-  (b64/decode (.getBytes s)))
-
-;; TODO: this is specifically needed for the HTTP implementation, so
-;; we could probably move the bytes stuff there. Also we could use
-;; hiredman's lib instead of doing it ourselves.
-(defmethod print-method (type (byte-array 2))
-  [ba ^java.io.Writer pw]
-  (doto pw
-    (.append "#vcr-clj/bytes \"")
-    (.append (String. (b64/encode ba)))
-    (.append "\"")))
+            [fs.core :as fs]
+            [vcr-clj.cassettes.serialization :refer [data-readers]]))
 
 (defn cassette-file
   "Returns the File object for a given cassette name. Ensures parent
@@ -37,7 +24,5 @@
 ;; TODO: use clojure.edn?
 (defn read-cassette
   [name]
-  (-> name
-      cassette-file
-      slurp
-      read-string))
+  (with-open [r (java.io.PushbackReader. (io/reader (cassette-file name)))]
+    (edn/read {:readers data-readers} r)))

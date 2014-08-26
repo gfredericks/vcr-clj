@@ -5,6 +5,7 @@
             [fs.core :as fs]
             [ring.adapter.jetty :as jetty]
             [ring.util.response :as resp]
+            [vcr-clj.cassettes.serialization :refer [str->bytes]]
             [vcr-clj.clj-http :refer [with-cassette]]
             [vcr-clj.test.helpers :as help]))
 
@@ -77,7 +78,7 @@
     "transfer-encoding" "chunked",
     "date" "Thu, 16 Aug 2012 01:11:12 GMT",
     "connection" "close"},
-   :body #vcr-clj/bytes "H4sIAAAAAAAAAIuOBQApu0wNAgAAAA=="})
+   :body (str->bytes "H4sIAAAAAAAAAIuOBQApu0wNAgAAAA==")})
 
 (deftest gzip-test
   (fs/mkdir "cassettes")
