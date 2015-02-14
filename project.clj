@@ -3,6 +3,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/data.codec "0.1.0"]
                  [fs "1.3.3"]]
+  :deploy-repositories [["releases" :clojars]]
   :profiles {:dev [:test-deps-without-clj-http :clj-http-101]
 
              :test-deps-without-clj-http
