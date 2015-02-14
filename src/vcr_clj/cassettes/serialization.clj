@@ -2,6 +2,25 @@
   "Code for printing and reading things."
   (:require [clojure.data.codec.base64 :as b64]))
 
+;; Support serialization for the HeaderMap type when it is around
+(try (require 'clj-http.headers)
+     (let [c (resolve 'clj_http.headers.HeaderMap)
+           constructor @(resolve 'clj-http.headers/header-map)]
+       (defmethod print-method c
+         [hm pw]
+         (.write pw "#vcr-clj/clj-http-header-map (")
+         (doseq [k (keys hm)
+                 :let [v (get hm k)]]
+           (.write pw " ")
+           (print-method k pw)
+           (.write pw " ")
+           (print-method v pw))
+         (.write pw ")"))
+       (defn read-clj-http-header-map
+         [args]
+         (apply constructor args)))
+     (catch Throwable t))
+
 (defn str->bytes
   [s]
   (b64/decode (.getBytes s)))
@@ -55,5 +74,6 @@
       serializablize-input-stream))
 
 (def data-readers
-  {'vcr-clj/bytes        str->bytes
-   'vcr-clj/input-stream read-input-stream})
+  {'vcr-clj/bytes               str->bytes
+   'vcr-clj/input-stream        read-input-stream
+   'vcr-clj/clj-http-header-map read-clj-http-header-map})
