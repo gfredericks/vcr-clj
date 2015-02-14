@@ -4,10 +4,9 @@
 
 ;; Support serialization for the HeaderMap type when it is around
 (try (require 'clj-http.headers)
-     (let [c (resolve 'clj_http.headers.HeaderMap)
-           constructor @(resolve 'clj-http.headers/header-map)]
-       (defmethod print-method c
-         [hm pw]
+     (let [constructor @(resolve 'clj-http.headers/header-map)]
+       (defmethod print-method ::clj-http-header-map
+         [{hm :m} pw]
          (.write pw "#vcr-clj/clj-http-header-map (")
          (doseq [k (keys hm)
                  :let [v (get hm k)]]
@@ -18,7 +17,13 @@
          (.write pw ")"))
        (defn read-clj-http-header-map
          [args]
-         (apply constructor args)))
+         (apply constructor args))
+       (defn serializablize-clj-http-header-map
+         "Given a clj-http HeaderMap object, returns a wrapper that will
+         serialize to a tagged edn representation that roundtrips back to
+         a HeaderMap."
+         [m]
+         (with-meta {:m m} {:type ::clj-http-header-map})))
      (catch Throwable t))
 
 (defn str->bytes

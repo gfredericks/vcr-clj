@@ -7,7 +7,7 @@
    clj-http.core/request."
   (:require [clojure.data.codec.base64 :as b64]
             [vcr-clj.core :as vcr]
-            [vcr-clj.cassettes.serialization :refer [serializablize-input-stream]]))
+            [vcr-clj.cassettes.serialization :as ser]))
 
 
 (def default-req-keys
@@ -18,15 +18,35 @@
   [m k v]
   (cond-> m (not (contains? m k)) (assoc k v)))
 
+(try
+  (require 'clj-http.headers)
+  (let [c (resolve 'clj_http.headers.HeaderMap)]
+    (defn clj-http-header-map?
+      [x]
+      (instance? c x)))
+  (catch Throwable t
+    (defn clj-http-header-map? [x] false)))
 
-(defn serializablize-body
-  "When x has a :body entry that is an input-stream, reads its
-   contents and converts it to a serializable kind of
-   ByteArrayInputStream."
+(defmethod print-method ::serializable-http-request
+  [req pw]
+  (-> req
+      (vary-meta dissoc :type)
+      (update-in [:headers] (fn [headers]
+                              (cond-> headers
+                                      (clj-http-header-map? headers)
+                                      (ser/serializablize-clj-http-header-map))))
+      (print-method pw)))
+
+(defn serializablize
+  "Transforms :body when necessary, and changes the :type metadata so
+  the request serializes correctly."
   [x]
-  (cond-> x
-          (instance? java.io.InputStream (:body x))
-          (update-in [:body] serializablize-input-stream)))
+  (-> x
+      (update-in [:body] (fn [body]
+                           (cond-> body
+                                   (instance? java.io.InputStream body)
+                                   (ser/serializablize-input-stream))))
+      (vary-meta assoc :type ::serializable-http-request)))
 
 (defmacro with-cassette
   "Helper for running a cassette on clj-http.core/request. Optionally
@@ -41,5 +61,5 @@
        [(-> ~opts
             (assoc :var (var clj-http.core/request))
             (assoc-or :arg-key-fn (fn [req#] (select-keys req# default-req-keys)))
-            (assoc-or :return-transformer serializablize-body))]
+            (assoc-or :return-transformer serializablize))]
        ~@body)))
