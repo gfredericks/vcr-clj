@@ -71,7 +71,8 @@
                (or (:v (meta next-val))
                    (throw (ex-info (format "No more recorded calls to %s!"
                                            var-name)
-                                   {:function var-name}))))))))
+                                   {:function var-name
+                                    :arg-key arg-key}))))))))
 
 ;; Assuming that order is only preserved for calls to any var in
 ;; particular, not necessarily all the vars considered together.
