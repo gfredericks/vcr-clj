@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.2
+
+Include the arg key when no recordings are found.
+
 ## 0.4.1
 
 Release. `2015-02-14`.
