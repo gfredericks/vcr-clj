@@ -94,9 +94,10 @@
                 [var (add-meta-from wrapped orig)]))]
     (with-redefs-fn redeffings func)))
 
-(defn- update
-  [m k f]
-  (update-in m [k] f))
+(when-not (resolve 'clojure.core/update)
+  (defn- update
+    [m k f]
+    (update-in m [k] f)))
 
 ;; * TODO
 ;; ** Handle streams
