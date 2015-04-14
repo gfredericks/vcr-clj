@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.3
+
+Fix compilation warnings from clojure 1.7 w.r.t. `clojure.core/update`.
+
 ## 0.4.2
 
 Include the arg key when no recordings are found.
