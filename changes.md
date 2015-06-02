@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.4
+
+Same as 0.4.3, but for real this time.
+
 ## 0.4.3
 
 Fix compilation warnings from clojure 1.7 w.r.t. `clojure.core/update`.
