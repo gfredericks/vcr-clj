@@ -2,7 +2,7 @@
 
 ## 0.4.5
 
-Fixed bug #8, in which empty http bodies didn't work.
+Fixed bug [#8](https://github.com/gfredericks/vcr-clj/pull/8), in which empty http bodies didn't work.
 
 ## 0.4.4
 
