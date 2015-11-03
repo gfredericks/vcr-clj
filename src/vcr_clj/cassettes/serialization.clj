@@ -74,7 +74,10 @@
   [hex-str]
   (-> hex-str
       .getBytes
-      b64/decode
+      ;; data.codec cannot roundtrip an empty string
+      ;; through a base64 encode/decode
+      ;; http://dev.clojure.org/jira/browse/DCODEC-4
+      (cond-> (seq hex-str) b64/decode)
       java.io.ByteArrayInputStream.
       serializablize-input-stream))
 
