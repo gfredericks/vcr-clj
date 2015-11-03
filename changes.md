@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.5
+
+Fixed bug #8, in which empty http bodies didn't work.
+
 ## 0.4.4
 
 Same as 0.4.3, but for real this time.
