@@ -28,7 +28,9 @@
 
 (defn str->bytes
   [s]
-  (b64/decode (.getBytes s)))
+  (if (empty? s)
+    (.getBytes "")
+    (b64/decode (.getBytes s))))
 
 (defmethod print-method (type (byte-array 2))
   [ba ^java.io.Writer pw]
