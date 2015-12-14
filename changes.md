@@ -1,5 +1,10 @@
 # vcr-clj changes
 
+## 0.4.6
+
+Fixed another bug [#9](https://github.com/gfredericks/vcr-clj/pull/9)
+similar to the one in the previous release.
+
 ## 0.4.5
 
 Fixed bug [#8](https://github.com/gfredericks/vcr-clj/pull/8), in which empty http bodies didn't work.
