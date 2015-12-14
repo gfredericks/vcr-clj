@@ -15,7 +15,7 @@ vcr-clj requires Clojure 1.4 or later.
 
 ## Obtention
 
-`[com.gfredericks/vcr-clj "0.4.5"]`
+`[com.gfredericks/vcr-clj "0.4.6"]`
 
 ## Usage
 
