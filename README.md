@@ -54,6 +54,8 @@ created in the `/cassettes` directory. Each subsequent time, playback
 is performed using the cassette in the directory. You can delete it to
 force a re-record.
 
+Namespaced keywords can be used to group cassettes in the filesystem.
+
 ### Customizing
 
 Each var that is recorded can be customized with options:
@@ -71,10 +73,6 @@ Each var that is recorded can be customized with options:
 
 * Add a better way to re-record than deleting cassette files.
   Maybe an environment variable?
-* Good support for using namespaced keywords for cassette names?
-  I feel like the natural thing to do would be to create nested
-  directories under `/cassettes`, but they could be nested rather
-  far for long ns names.
 
 ## License
 

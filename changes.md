@@ -1,5 +1,13 @@
 # vcr-clj changes
 
+## 0.4.8
+
+Allow namespaced keywords ([#12](https://github.com/gfredericks/vcr-clj/pull/12)).
+
+## 0.4.7
+
+Serialize long byte arrays on multiple lines ([#10](https://github.com/gfredericks/vcr-clj/pull/10)).
+
 ## 0.4.6
 
 Fixed another bug [#9](https://github.com/gfredericks/vcr-clj/pull/9)
