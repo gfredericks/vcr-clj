@@ -5,15 +5,16 @@
             [vcr-clj.cassettes.serialization :refer [data-readers]]))
 
 (defn cassette-path [cassette-name]
-  (if (keyword? cassette-name)
-    (remove nil? ((juxt namespace name) cassette-name))
-    [(name cassette-name)]))
+  (let [[name ns] (if (keyword? cassette-name)
+                    ((juxt name namespace) cassette-name)
+                    [(name cassette-name)])]
+    (remove nil? [ns (str name ".clj")])))
 
 (defn cassette-file
   "Returns the File object for a given cassette name. Ensures parent
    directories exist."
   [cassette-name]
-  (let [path (concat ["cassettes"] (cassette-path cassette-name) [".clj"])]
+  (let [path (cons "cassettes" (cassette-path cassette-name))]
     (doto (apply fs/file path)
       (-> fs/parent fs/mkdirs))))
 

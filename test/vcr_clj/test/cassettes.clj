@@ -4,6 +4,6 @@
 
 (deftest cassette-path-test
   (are [input expected] (= (cassette-path input) expected)
-    "foobar" ["foobar"]
-    :foobar ["foobar"]
-    ::foobar ["vcr-clj.test.cassettes" "foobar"]))
+    "foobar" ["foobar.clj"]
+    :foobar ["foobar.clj"]
+    ::foobar ["vcr-clj.test.cassettes" "foobar.clj"]))
