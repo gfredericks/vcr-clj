@@ -4,12 +4,18 @@
             [fs.core :as fs]
             [vcr-clj.cassettes.serialization :refer [data-readers]]))
 
+(defn cassette-path [cassette-name]
+  (if (keyword? cassette-name)
+    (remove nil? ((juxt namespace name) cassette-name))
+    [(name cassette-name)]))
+
 (defn cassette-file
   "Returns the File object for a given cassette name. Ensures parent
    directories exist."
   [cassette-name]
-  (doto (fs/file "cassettes" (str (name cassette-name) ".clj"))
-    (-> fs/parent fs/mkdirs)))
+  (let [path (concat ["cassettes"] (cassette-path cassette-name) [".clj"])]
+    (doto (apply fs/file path)
+      (-> fs/parent fs/mkdirs))))
 
 (defn cassette-exists?
   [name]
