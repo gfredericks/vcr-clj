@@ -3,6 +3,7 @@
   (:require [bond.james :refer [calls with-spy]]
             [clj-http.client :as client]
             [clojure.test :refer :all]
+            [vcr-clj.cassettes :as cassettes]
             [vcr-clj.core :refer [with-cassette]]
             [vcr-clj.test.helpers :as help]))
 
@@ -66,6 +67,16 @@
 
     ;; One of the two calls went through
     (is (= 3 (count (calls plus))))))
+
+(deftest short-circuit-when-recordable?-predicate-returns-falsey
+  (with-spy [increment]
+    (with-cassette :skip-calls [{:var #'increment
+                                 :recordable? (constantly nil)
+                                 :arg-key-fn (fn [& _] (is false))
+                                 :return-transformer (fn [& _] (is false))}]
+      (is (= 42 (increment 41))))
+    (is (= 1 (count (calls increment))))
+    (is (empty? (:calls (cassettes/read-cassette :skip-calls))))))
 
 (deftest arg-key-fn-test
   (with-cassette :blammo [{:var #'increment

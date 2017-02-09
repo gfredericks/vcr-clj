@@ -22,14 +22,14 @@
   (let [orig-fn (deref var)
         the-var-name (var-name var)
         wrapped (fn [& args]
-                  (let [res (return-transformer (apply orig-fn args))
-                        k (apply arg-key-fn args)
-                        call {:var-name the-var-name
-                              :arg-key k
-                              :return res}]
-                    (when (apply recordable? args)
-                      (record-fn call))
-                    res))]
+                  (if-not (apply recordable? args)
+                    (apply orig-fn args)
+                    (let [res (return-transformer (apply orig-fn args))
+                          call {:var-name the-var-name
+                                :arg-key (apply arg-key-fn args)
+                                :return res}]
+                      (record-fn call)
+                      res)))]
     (add-meta-from wrapped orig-fn)))
 
 ;; TODO: add the ability to configure whether out-of-order
