@@ -14,6 +14,9 @@
   [x1 x2]
   (with-meta x1 (meta x2)))
 
+(def ^{:dynamic true :private true} *recording?*
+  false)
+
 (defn ^:private build-wrapped-fn
   [record-fn {:keys [var arg-key-fn recordable? return-transformer]
               :or {arg-key-fn vector
@@ -22,9 +25,10 @@
   (let [orig-fn (deref var)
         the-var-name (var-name var)
         wrapped (fn [& args]
-                  (if-not (apply recordable? args)
+                  (if-not (and *recording?* (apply recordable? args))
                     (apply orig-fn args)
-                    (let [res (return-transformer (apply orig-fn args))
+                    (let [res (binding [*recording?* false]
+                                (return-transformer (apply orig-fn args)))
                           call {:var-name the-var-name
                                 :arg-key (apply arg-key-fn args)
                                 :return res}]
@@ -42,6 +46,7 @@
         record! #(swap! calls conj %)
         redeffings (->> specs
                         (map (juxt :var (partial build-wrapped-fn record!)))
+                        (cons [#'*recording?* true])
                         (into {}))
         func-return (with-redefs-fn redeffings func)
         cassette {:calls @calls}]

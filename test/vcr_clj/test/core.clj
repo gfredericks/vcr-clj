@@ -86,3 +86,27 @@
   (with-cassette :blammo [{:var #'increment
                            :arg-key-fn #(mod % 2)}]
     (is (= 42 (increment 29)))))
+
+(defn self-caller
+  "Multi-arity function that calls itself when called with one argument"
+  ([x]
+   (self-caller x 1))
+  ([x n]
+   (+ x n)))
+
+(deftest do-not-record-self-calls-test
+  (with-spy [self-caller]
+    (with-cassette :self-caller [{:var #'self-caller}]
+      (is (= 42 (self-caller 41))))
+    (is (= [{:args [41 1] :return 42}
+            {:args [41] :return 42}]
+           ;; with-spy records calls in the order of their returns
+           (calls self-caller))
+        "the original function calls itself")
+    (is (= 1 (count (:calls (cassettes/read-cassette :self-caller))))
+        "only the outermost call is recorded"))
+  (with-spy [self-caller]
+    (with-cassette :self-caller [{:var #'self-caller}]
+      (is (= 42 (self-caller 41))))
+    (is (empty? (calls self-caller))
+        "the recorded call does not result in any self-calls")))
