@@ -46,9 +46,9 @@
         record! #(swap! calls conj %)
         redeffings (->> specs
                         (map (juxt :var (partial build-wrapped-fn record!)))
-                        (cons [#'*recording?* true])
                         (into {}))
-        func-return (with-redefs-fn redeffings func)
+        func-return (binding [*recording?* true]
+                      (with-redefs-fn redeffings func))
         cassette {:calls @calls}]
     [func-return cassette]))
 
