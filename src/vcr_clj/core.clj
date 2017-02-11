@@ -14,6 +14,28 @@
   [x1 x2]
   (with-meta x1 (meta x2)))
 
+(def ^{:dynamic true :private true} *recording?*
+  false)
+
+(defn ^:private build-wrapped-fn
+  [record-fn {:keys [var arg-key-fn recordable? return-transformer]
+              :or {arg-key-fn vector
+                   recordable? (constantly true)
+                   return-transformer identity}}]
+  (let [orig-fn (deref var)
+        the-var-name (var-name var)
+        wrapped (fn [& args]
+                  (if-not (and *recording?* (apply recordable? args))
+                    (apply orig-fn args)
+                    (let [res (binding [*recording?* false]
+                                (return-transformer (apply orig-fn args)))
+                          call {:var-name the-var-name
+                                :arg-key (apply arg-key-fn args)
+                                :return res}]
+                      (record-fn call)
+                      res)))]
+    (add-meta-from wrapped orig-fn)))
+
 ;; TODO: add the ability to configure whether out-of-order
 ;; calls are allowed, or repeat calls, or such and such.
 (defn record
@@ -21,27 +43,12 @@
    where val is the return value of func."
   [specs func]
   (let [calls (atom [])
-
-        redeffings
-        (into {}
-              (for [{:keys [var arg-key-fn recordable? return-transformer]
-                     :or {arg-key-fn vector
-                          recordable? (constantly true)
-                          return-transformer identity}}
-                    specs
-                    :let [orig-fn (deref var)
-                          the-var-name (var-name var)
-                          wrapped (fn [& args]
-                                    (let [res (return-transformer (apply orig-fn args))
-                                          k (apply arg-key-fn args)
-                                          call {:var-name the-var-name
-                                                :arg-key k
-                                                :return res}]
-                                      (when (apply recordable? args)
-                                        (swap! calls conj call))
-                                      res))]]
-                [var (add-meta-from wrapped orig-fn)]))
-        func-return (with-redefs-fn redeffings func)
+        record! #(swap! calls conj %)
+        redeffings (->> specs
+                        (map (juxt :var (partial build-wrapped-fn record!)))
+                        (into {}))
+        func-return (binding [*recording?* true]
+                      (with-redefs-fn redeffings func))
         cassette {:calls @calls}]
     [func-return cassette]))
 
