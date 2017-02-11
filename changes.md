@@ -1,5 +1,12 @@
 # vcr-clj changes
 
+## 0.4.9 2017-02-11
+
+Fix #14: don't record self-calls, or any nested calls
+
+This is particularly useful for newer versions of clj-http where the
+`request` function has a self-calling arity.
+
 ## 0.4.8
 
 Allow namespaced keywords ([#12](https://github.com/gfredericks/vcr-clj/pull/12)).
