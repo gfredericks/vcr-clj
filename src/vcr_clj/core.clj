@@ -52,6 +52,9 @@
         cassette {:calls @calls}]
     [func-return cassette]))
 
+(defn indexed-cassette [cassette]
+  (group-by (juxt :var-name :arg-key) (:calls cassette)))
+
 ;; I guess currently we aren't recording actual arguments, just the arg-key.
 ;; Should that change?
 (defn playbacker
@@ -67,7 +70,7 @@
   [cassette order-scope]
   ;; don't support anything else yet
   (case order-scope
-    :key (let [calls (atom (group-by (juxt :var-name :arg-key) (:calls cassette)))]
+    :key (let [calls (atom (indexed-cassette cassette))]
            (fn [var-name arg-key]
              (let [next-val (swap! calls
                                    (fn [x]
@@ -81,26 +84,43 @@
                                    {:function var-name
                                     :arg-key arg-key}))))))))
 
+(defn record-new-episodes? [specs the-var-name]
+  (->> specs
+       (filter #(= (var-name (:var %)) the-var-name))
+       first
+       :record-new-episodes?))
+
 ;; Assuming that order is only preserved for calls to any var in
 ;; particular, not necessarily all the vars considered together.
 (defn playback
   [specs cassette func]
-  (let [the-playbacker (playbacker cassette :key)
+  (let [updated-cassette (atom cassette)
+        record! #(swap! updated-cassette update-in [:calls] conj %)
+        has-recording? #(get (indexed-cassette cassette) [%1 %2])
+        the-playbacker (playbacker cassette :key)
         redeffings
         (into {}
-              (for [{:keys [var arg-key-fn recordable?]
+              (for [{:keys [var arg-key-fn recordable? return-transformer]
                      :or {arg-key-fn vector
-                          recordable? (constantly true)}}
+                          recordable? (constantly true)
+                          return-transformer identity}}
                     specs
                     :let [orig (deref var)
                           the-var-name (var-name var)
                           wrapped (fn [& args]
                                     (let [k (apply arg-key-fn args)]
                                       (if (apply recordable? args)
-                                        (:return (the-playbacker the-var-name k))
+                                        (if (and (record-new-episodes? specs the-var-name)
+                                                 (not (has-recording? the-var-name k)))
+                                          (let [result (return-transformer (apply orig args))]
+                                            (record! {:var-name the-var-name
+                                                      :arg-key k
+                                                      :return result})
+                                            result)
+                                          (:return (the-playbacker the-var-name k)))
                                         (apply orig args))))]]
                 [var (add-meta-from wrapped orig)]))]
-    (with-redefs-fn redeffings func)))
+    [(with-redefs-fn redeffings func) @updated-cassette]))
 
 ;; * TODO
 ;; ** Handle streams
@@ -115,7 +135,9 @@
   (if (cassette-exists? cassette-name)
     (do
       (println' "Running test with existing" cassette-name "cassette...")
-      (playback specs (read-cassette cassette-name) func))
+      (let [[result cassette] (playback specs (read-cassette cassette-name) func)]
+        (write-cassette cassette-name cassette)
+        result))
     (do
       (println' "Recording new" cassette-name "cassette...")
       (let [[return cassette] (record specs func)]
@@ -139,6 +161,10 @@
                   a function that the return value will be passed through
                   while recording, which can be useful for doing things
                   like ensuring serializability.
+     :record-new-episodes?
+                  a boolean indicating if an existing cassette should be
+                  updated with calls that were not previously recorded.
+                  defaults to false.
     }"
   [cname specs & body]
   `(with-cassette-fn* ~cname ~specs (fn [] ~@body)))

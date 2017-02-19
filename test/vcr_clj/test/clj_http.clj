@@ -123,3 +123,21 @@
       (is (= "bar" (get "/foo")))))
   (with-cassette :whale
     (is (= "bar" (get "/foo")))))
+
+(defn time-server [&args]
+  {:status 200
+   :body (str (System/currentTimeMillis))
+   :headers {}})
+
+
+(deftest recording-new-http-episodes
+  (with-jetty-server time-server
+    (with-local-vars [result-with-a nil
+                      result-with-b nil]
+      (with-cassette :recording-new-episodes
+        (var-set result-with-a (get "/a")))
+      (with-cassette :recording-new-episodes {:record-new-episodes? true}
+        (var-set result-with-b (get "/b")))
+      (with-cassette :recording-new-episodes
+        (is (= (get "/a") @result-with-a))
+        (is (= (get "/b") @result-with-b))))))

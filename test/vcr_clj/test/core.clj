@@ -110,3 +110,18 @@
       (is (= 42 (self-caller 41))))
     (is (empty? (calls self-caller))
         "the recorded call does not result in any self-calls")))
+
+(defn current-time [& args]
+  "Accepts any arguments and returns the current time"
+  (System/currentTimeMillis))
+
+(deftest recording-new-episodes
+  (with-local-vars [result-with-a nil
+                    result-with-b nil]
+    (with-cassette :recording-new-episodes [{:var #'current-time}] (var-set result-with-a (current-time :a)))
+    (with-cassette :recording-new-episodes [{:var #'current-time :record-new-episodes? true}]
+      (var-set result-with-b (current-time :b)))
+    (with-cassette :recording-new-episodes [{:var #'current-time}]
+      (is (= (current-time :a) @result-with-a))
+      (is (= (current-time :b) @result-with-b)))))
+
