@@ -22,4 +22,6 @@
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-077" "test,"
              ;; 053 fails currently, don't feel like investigating
              ;; "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-053" "test"
-             ]})
+             ]
+            "ci"
+            ["test-all"]})

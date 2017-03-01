@@ -1,5 +1,7 @@
 # vcr-clj
 
+[![Circle CI](https://circleci.com/gh/gfredericks/vcr-clj.svg?style=svg)](https://circleci.com/gh/gfredericks/vcr-clj)
+
 vcr-clj is a general function recording/playback library for Clojure. It is
 intended to be used when testing code that does I/O, to achieve several goals:
 
