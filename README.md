@@ -70,11 +70,10 @@ Each var that is recorded can be customized with options:
                   fn; if it returns falsy, the call will be passed to
                   through to the original function both during recording
                   and playback.
-
-## TODO
-
-* Add a better way to re-record than deleting cassette files.
-  Maybe an environment variable?
+- `:record-new-episodes?`:
+                  a boolean indicating if an existing cassette should be
+                  updated with calls that were not previously recorded.
+                  defaults to false.
 
 ## License
 
