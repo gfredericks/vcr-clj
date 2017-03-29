@@ -48,6 +48,10 @@
                                    (ser/serializablize-input-stream))))
       (vary-meta assoc :type ::serializable-http-request)))
 
+(defn default-arg-key-fn
+  [req & more]
+  (select-keys req default-req-keys))
+
 (defmacro with-cassette
   "Helper for running a cassette on clj-http.core/request. Optionally
    takes an options map as the second arg, to supply extra keys to
@@ -60,6 +64,6 @@
     `(vcr/with-cassette ~name
        [(-> ~opts
             (assoc :var (var clj-http.core/request))
-            (assoc-or :arg-key-fn (fn [req#] (select-keys req# default-req-keys)))
+            (assoc-or :arg-key-fn default-arg-key-fn)
             (assoc-or :return-transformer serializablize))]
        ~@body)))
