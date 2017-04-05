@@ -32,4 +32,4 @@
 (defn read-cassette
   [name]
   (with-open [r (java.io.PushbackReader. (io/reader (cassette-file name)))]
-    (edn/read {:readers data-readers} r)))
+    (edn/read {:readers (merge data-readers *data-readers*)} r)))

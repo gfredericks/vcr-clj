@@ -133,3 +133,23 @@
           (.join))
         (is (= 2 (count (calls increment))))
         (is (= 100 @p))))))
+
+;; https://github.com/gfredericks/vcr-clj/issues/11
+
+(deftype Foo [x])
+
+(defmethod print-method Foo
+  [foo pw]
+  (.write pw "#foo ")
+  (print-method (.x foo) pw))
+
+(defn foo-maker
+  [x]
+  (Foo. x))
+
+(deftest custom-serializations
+  (binding [*data-readers* (assoc *data-readers*
+                                  'foo (fn [x] (Foo. x)))]
+    (dotimes [_ 2]
+      (with-cassette :foobles [{:var #'foo-maker}]
+        (= 42 (.x (foo-maker 42)))))))
