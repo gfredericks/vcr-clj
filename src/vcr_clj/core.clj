@@ -130,6 +130,9 @@
   "Each spec is:
     {
      :var a var
+
+     ;; the rest are optional
+
      :arg-key-fn  a function of the same arguments as the var that is
                   expected to return a value that can be stored and
                   compared for equality to the expected call. Defaults
