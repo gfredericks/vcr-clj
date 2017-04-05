@@ -95,10 +95,10 @@
                     :let [orig (deref var)
                           the-var-name (var-name var)
                           wrapped (fn [& args]
-                                    (let [k (apply arg-key-fn args)]
-                                      (if (apply recordable? args)
-                                        (:return (the-playbacker the-var-name k))
-                                        (apply orig args))))]]
+                                    (if (apply recordable? args)
+                                      (let [k (apply arg-key-fn args)]
+                                        (:return (the-playbacker the-var-name k)))
+                                      (apply orig args)))]]
                 [var (add-meta-from wrapped orig)]))]
     (with-redefs-fn redeffings func)))
 

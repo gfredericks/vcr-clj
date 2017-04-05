@@ -123,3 +123,25 @@
       (is (= "bar" (get "/foo")))))
   (with-cassette :whale
     (is (= "bar" (get "/foo")))))
+
+;; https://github.com/gfredericks/vcr-clj/issues/18
+
+(defn make-counting-server
+  []
+  (let [reqs (atom {})]
+    (fn [req]
+      {:body (str ((swap! reqs update (:uri req) (fnil inc 0))
+                   (:uri req)))
+       :headers {}
+       :status 200})))
+
+(deftest not-all-reqs-recorded
+  (with-jetty-server (make-counting-server)
+    (with-cassette :makeshift
+      {:recordable? (fn [req & more] (re-find #"foo" (:uri req)))}
+      (is (= "1" (get "/foo")))
+      (is (= "1" (get "/bar"))))
+    (with-cassette :makeshift
+      {:recordable? (fn [req & more] (re-find #"foo" (:uri req)))}
+      (is (= "1" (get "/foo")))
+      (is (= "2" (get "/bar"))))))

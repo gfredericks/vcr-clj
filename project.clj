@@ -11,6 +11,7 @@
               {:dependencies [[bond "0.2.5"]
                               [ring/ring-jetty-adapter "1.1.2"]]}]
 
+             :clj-http-341 {:dependencies [[clj-http "3.4.1"]]}
              :clj-http-230 {:dependencies [[clj-http "2.3.0"]]}
              :clj-http-112 {:dependencies [[clj-http "1.1.2"]]}
              :clj-http-101 {:dependencies [[clj-http "1.0.1"]]}
@@ -22,6 +23,7 @@
   :aliases {"test-all-clj-https"
             ^{:doc "Runs tests on all listed versions of clj-http."}
             ["do"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-341" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-230" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-112" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-101" "test,"
