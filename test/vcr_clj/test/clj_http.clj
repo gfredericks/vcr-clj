@@ -145,3 +145,17 @@
       {:recordable? (fn [req & more] (re-find #"foo" (:uri req)))}
       (is (= "1" (get "/foo")))
       (is (= "2" (get "/bar"))))))
+
+;; https://github.com/gfredericks/vcr-clj/issues/19
+
+(deftest with-cassette-non-literal-opts
+  (with-jetty-server (make-counting-server)
+    (let [m {:recordable? (constantly false)}]
+      (with-cassette (assoc m :name :tandem)
+        :opts m
+        (is (= "1" (get "/foo")))
+        (is (= "2" (get "/foo"))))
+      (with-cassette (assoc m :name :tandem)
+        :opts m
+        (is (= "3" (get "/foo")))
+        (is (= "4" (get "/foo")))))))

@@ -45,7 +45,12 @@ in particular:
 
 (deftest here-is-my-webby-test
   (with-cassette :foo
-    ;; can optionally include an options map here
+    ... do some testy things ...
+    ... that call clj-http functions ...))
+
+(deftest this-test-only-records-some-calls
+  (with-cassette {:name :foo-2
+                  :recordable? (fn [req] (worth-recording? req))}
     ... do some testy things ...
     ... that call clj-http functions ...))
 

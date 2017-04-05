@@ -53,17 +53,46 @@
   (select-keys req default-req-keys))
 
 (defmacro with-cassette
-  "Helper for running a cassette on clj-http.core/request. Optionally
-   takes an options map as the second arg, to supply extra keys to
-   the spec map passed to vcr-clj.core/with-cassette."
-  [name & body]
-  (let [[opts body] (if (and (> (count body) 1)
-                             (map? (first body)))
-                      [(first body) (rest body)]
-                      [{} body])]
-    `(vcr/with-cassette ~name
-       [(-> ~opts
-            (assoc :var (var clj-http.core/request))
-            (assoc-or :arg-key-fn default-arg-key-fn)
-            (assoc-or :return-transformer serializablize))]
-       ~@body)))
+  "Helper for running a cassette on clj-http.core/request.
+
+  E.g.:
+
+  (with-cassette :recording-some-http-calls
+    (do)
+    (some)
+    (test)
+    (things))
+
+  To modify the options passed to vcr-clj.core/with-cassette,
+  use this syntax:
+
+  (with-cassette {:name :recording-some-http-calls
+                  :recordable? #(re-find #\"foo\" (:uri %))}
+    (do)
+    (some)
+    (test)
+    (things))"
+  [name-or-opts-map & body]
+  (let [[opts body]
+        ;; backwards-compatible support for the old syntax of
+        ;; (with-cassette :foo {...opts..} ...)
+        (cond (and (> (count body) 1)
+                   (map? (first body)))
+              [(assoc (first body) :name name-or-opts-map)
+               (rest body)]
+
+              (or (keyword? name-or-opts-map)
+                  (string?  name-or-opts-map))
+              [{:name name-or-opts-map} body]
+
+              :else
+              [name-or-opts-map body])]
+    `(let [opts# ~opts
+           opts# (if (map? opts#) opts# {:name opts#})]
+       (vcr/with-cassette (:name opts#)
+         [(-> opts#
+              (dissoc :name)
+              (assoc :var (var clj-http.core/request))
+              (assoc-or :arg-key-fn default-arg-key-fn)
+              (assoc-or :return-transformer serializablize))]
+         ~@body))))
