@@ -15,7 +15,10 @@
   (with-meta x1 (meta x2)))
 
 (def ^{:dynamic true :private true} *recording?*
-  false)
+  ;; defaulting this to true so that calls on other threads can be
+  ;; recorded, e.g. when running a web server whose handler makes
+  ;; calls that ought to be recorded.
+  true)
 
 (defn ^:private build-wrapped-fn
   [record-fn {:keys [var arg-key-fn recordable? return-transformer]

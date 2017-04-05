@@ -110,3 +110,26 @@
       (is (= 42 (self-caller 41))))
     (is (empty? (calls self-caller))
         "the recorded call does not result in any self-calls")))
+
+;; https://github.com/gfredericks/vcr-clj/issues/16
+
+(deftest recording-on-other-threads
+  (with-spy [increment]
+    (with-cassette :multithreaded-plussing [{:var #'increment}]
+      (is (= 42 (increment 41)))
+      (is (= 1 (count (calls increment))))
+      (doto (Thread. #(increment 99))
+        (.start)
+        (.join))
+      (is (->> (calls increment)
+               (map :args)
+               (= [[41] [99]]))))
+    (with-cassette :multithreaded-plussing [{:var #'increment}]
+      (is (= 42 (increment 41)))
+      (is (= 2 (count (calls increment))))
+      (let [p (promise)]
+        (doto (Thread. #(deliver p (increment 99)))
+          (.start)
+          (.join))
+        (is (= 2 (count (calls increment))))
+        (is (= 100 @p))))))
