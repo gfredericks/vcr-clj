@@ -1,5 +1,16 @@
 # vcr-clj changes
 
+## 0.4.10 2017-04-05
+
+Fix #16, which caused problems when trying to record calls made on
+other threads.
+
+Fixed #19, adding a new syntax for specifying options in
+`vcr-clj.clj-http/with-cassette`.
+
+Fixed #18, which caused problems for clj-http usage when selectively
+recording.
+
 ## 0.4.9 2017-02-11
 
 Fix #14: don't record self-calls, or any nested calls
