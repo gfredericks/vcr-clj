@@ -67,14 +67,23 @@ Namespaced keywords can be used to group cassettes in the filesystem.
 
 Each var that is recorded can be customized with options:
 
-- `:arg-key-fn`: a function with the same arg signature as the recorded
-                 fn, which returns a value that the call will be
-                 compared to during playback.  This defaults to
-                 `vector`, which just compares the args as given.
-- `:recordable?`: a function with the same arg signature as the recorded
-                  fn; if it returns falsy, the call will be passed to
-                  through to the original function both during recording
-                  and playback.
+- `:arg-key-fn`: A function with the same argument signature as the recorded
+  function, which returns a value for "fingerprinting" the arguments to each
+  call. During recording, the value returned by this function will be saved
+  along with the recorded call in the cassette. During playback, the value
+  returned by this function will be used to look up a matching recorded call in
+  the cassette.  The default is `clojure.core/vector`, which just compares the
+  arguments as given.
+- `:recordable?`: A function with the same argument signature as the recorded
+  function, which returns truthy or falsy. If it returns falsy, the call will
+  be passed through to the original function during both recording and
+  playback. The default is `clojure.core/identity`.
+- `:return-transformer`: A single-argument function that takes a value returned
+  by the recorded function and returns a transformed return value. During
+  recording, the recorded function will be composed with this transformer
+  function. This can be useful for ensuring serializability. The transformed
+  return value ought to be equivalent to the original return value for the
+  purpose of the code under test. The default is `clojure.core/identity`.
 
 ## TODO
 
