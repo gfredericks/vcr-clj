@@ -67,6 +67,16 @@ Namespaced keywords can be used to group cassettes in the filesystem.
 
 Each var that is recorded can be customized with options:
 
+- `:arg-transformer`: A function with the same argument signature as the
+  recorded function, which returns a vector of possibly transformed arguments.
+  During recording/playback, the original arguments to the function call are
+  passed through this transformer, and the transformed arguments are passed to
+  `arg-key-fn`, `recordable?` and the recorded function. This can be useful for
+  replacing an argument that would be destructively consumed (e.g. a mutable
+  `InputStream`) with an indestructible substitute. The transformed arguments
+  ought to be equivalent to the original arguments for the purpose of the code
+  under test.  The default is `clojure.core/vector`, which just passes along
+  the original arguments.
 - `:arg-key-fn`: A function with the same argument signature as the recorded
   function, which returns a value for "fingerprinting" the arguments to each
   call. During recording, the value returned by this function will be saved

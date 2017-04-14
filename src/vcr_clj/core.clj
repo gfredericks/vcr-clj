@@ -21,22 +21,24 @@
   true)
 
 (defn ^:private build-wrapped-fn
-  [record-fn {:keys [var arg-key-fn recordable? return-transformer]
-              :or {arg-key-fn vector
+  [record-fn {:keys [var arg-transformer arg-key-fn recordable? return-transformer]
+              :or {arg-transformer vector
+                   arg-key-fn vector
                    recordable? (constantly true)
                    return-transformer identity}}]
   (let [orig-fn (deref var)
         the-var-name (var-name var)
         wrapped (fn [& args]
-                  (if-not (and *recording?* (apply recordable? args))
-                    (apply orig-fn args)
-                    (let [res (binding [*recording?* false]
-                                (return-transformer (apply orig-fn args)))
-                          call {:var-name the-var-name
-                                :arg-key (apply arg-key-fn args)
-                                :return res}]
-                      (record-fn call)
-                      res)))]
+                  (let [args* (apply arg-transformer args)]
+                    (if-not (and *recording?* (apply recordable? args*))
+                      (apply orig-fn args*)
+                      (let [res (binding [*recording?* false]
+                                  (return-transformer (apply orig-fn args*)))
+                            call {:var-name the-var-name
+                                  :arg-key (apply arg-key-fn args*)
+                                  :return res}]
+                        (record-fn call)
+                        res))))]
     (add-meta-from wrapped orig-fn)))
 
 ;; TODO: add the ability to configure whether out-of-order
@@ -91,17 +93,19 @@
   (let [the-playbacker (playbacker cassette :key)
         redeffings
         (into {}
-              (for [{:keys [var arg-key-fn recordable?]
-                     :or {arg-key-fn vector
+              (for [{:keys [var arg-transformer arg-key-fn recordable?]
+                     :or {arg-transformer vector
+                          arg-key-fn vector
                           recordable? (constantly true)}}
                     specs
                     :let [orig (deref var)
                           the-var-name (var-name var)
                           wrapped (fn [& args]
-                                    (if (apply recordable? args)
-                                      (let [k (apply arg-key-fn args)]
-                                        (:return (the-playbacker the-var-name k)))
-                                      (apply orig args)))]]
+                                    (let [args* (apply arg-transformer args)]
+                                      (if (apply recordable? args*)
+                                        (let [k (apply arg-key-fn args*)]
+                                          (:return (the-playbacker the-var-name k)))
+                                        (apply orig args*))))]]
                 [var (add-meta-from wrapped orig)]))]
     (with-redefs-fn redeffings func)))
 
@@ -133,6 +137,14 @@
 
      ;; the rest are optional
 
+     :arg-transformer
+                  a function with the same arg signature as the var,
+                  which is expected to returns a vector of equivalent
+                  arguments. During recording/playback, the original
+                  arguments to the function call are passed through this
+                  transformer, and the transformed arguments are passed
+                  to arg-key-fn, recordable? and the recorded function.
+                  Defaults to clojure.core/vector.
      :arg-key-fn  a function of the same arguments as the var that is
                   expected to return a value that can be stored and
                   compared for equality to the expected call. Defaults
