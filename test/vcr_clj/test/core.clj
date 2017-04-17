@@ -12,6 +12,7 @@
 ;; some test fns
 (defn plus [a b] (+ a b))
 (defn increment [x] (inc x))
+(defn put-foo [m v] (assoc m :foo v))
 
 (deftest basic-test
   (with-spy [plus]
@@ -86,6 +87,27 @@
   (with-cassette :blammo [{:var #'increment
                            :arg-key-fn #(mod % 2)}]
     (is (= 42 (increment 29)))))
+
+(deftest arg-transformer-test
+  (with-spy [put-foo]
+    (with-cassette :shebang
+      [{:var #'put-foo
+        :arg-transformer (fn [m v]
+                           (is (= [{} 42] [m v]))
+                           [(vary-meta m assoc :arg-transformer true) v])
+        :recordable?  (fn [m v]
+                        (is (= [{} 42] [m v]))
+                        (is (:arg-transformer (meta m)))
+                        true)
+        :arg-key-fn (fn [m v]
+                      (is (= [{} 42] [m v]))
+                      (is (:arg-transformer (meta m)))
+                      [m v])}]
+      (is (= {:foo 42} (put-foo {} 42)))
+      (is (= 1 (count (calls put-foo))))
+      (is (= [{} 42]
+             (:args (first (calls put-foo)))))
+      (is (-> (calls put-foo) first :args first meta :arg-transformer)))))
 
 (defn self-caller
   "Multi-arity function that calls itself when called with one argument"
