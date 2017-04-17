@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.11 2017-04-17
+
+Adds an `:arg-transformer` option, similar to `:return-transformer`.
+
 ## 0.4.10 2017-04-05
 
 Fix #16, which caused problems when trying to record calls made on
