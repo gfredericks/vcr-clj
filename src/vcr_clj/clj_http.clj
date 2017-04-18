@@ -52,6 +52,13 @@
   [req & more]
   (select-keys req default-req-keys))
 
+(def default-spec
+  "The spec used by vcr-clj.clj-http/with-cassette, suitable
+  for passing to vcr-clj.core/with-cassette."
+  {:var                #'clj-http.core/request
+   :arg-key-fn         default-arg-key-fn
+   :return-transformer serializablize})
+
 (defmacro with-cassette
   "Helper for running a cassette on clj-http.core/request.
 
@@ -90,9 +97,5 @@
     `(let [opts# ~opts
            opts# (if (map? opts#) opts# {:name opts#})]
        (vcr/with-cassette (:name opts#)
-         [(-> opts#
-              (dissoc :name)
-              (assoc :var (var clj-http.core/request))
-              (assoc-or :arg-key-fn default-arg-key-fn)
-              (assoc-or :return-transformer serializablize))]
+         [(merge default-spec (dissoc opts# :name))]
          ~@body))))
