@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.12 2017-04-18
+
+Add `clj-http.vcr-clj/default-spec`.
+
 ## 0.4.11 2017-04-17
 
 Adds an `:arg-transformer` option, similar to `:return-transformer`.
