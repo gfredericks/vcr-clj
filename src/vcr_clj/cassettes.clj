@@ -28,7 +28,6 @@
     (binding [*out* writer]
       (prn cassette))))
 
-;; TODO: use clojure.edn?
 (defn read-cassette
   [name]
   (with-open [r (java.io.PushbackReader. (io/reader (cassette-file name)))]
