@@ -47,14 +47,15 @@
   "Redefs the vars to record the calls, and returns [val cassette]
    where val is the return value of func."
   [specs func]
-  (let [calls (atom [])
+  (let [recorded-at (java.util.Date.)
+        calls (atom [])
         record! #(swap! calls conj %)
         redeffings (->> specs
                         (map (juxt :var (partial build-wrapped-fn record!)))
                         (into {}))
         func-return (binding [*recording?* true]
                       (with-redefs-fn redeffings func))
-        cassette {:calls @calls}]
+        cassette {:calls @calls :recorded-at recorded-at}]
     [func-return cassette]))
 
 ;; I guess currently we aren't recording actual arguments, just the arg-key.
