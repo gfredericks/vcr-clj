@@ -18,35 +18,14 @@
   [m k v]
   (cond-> m (not (contains? m k)) (assoc k v)))
 
-(try
-  (require 'clj-http.headers)
-  (let [c (resolve 'clj_http.headers.HeaderMap)]
-    (defn clj-http-header-map?
-      [x]
-      (instance? c x)))
-  (catch Throwable t
-    (defn clj-http-header-map? [x] false)))
-
-(defmethod print-method ::serializable-http-request
-  [req pw]
-  (-> req
-      (vary-meta dissoc :type)
-      (update-in [:headers] (fn [headers]
-                              (cond-> headers
-                                      (clj-http-header-map? headers)
-                                      (ser/serializablize-clj-http-header-map))))
-      (print-method pw)))
-
 (defn serializablize
-  "Transforms :body when necessary, and changes the :type metadata so
-  the request serializes correctly."
-  [x]
-  (-> x
-      (update-in [:body] (fn [body]
-                           (cond-> body
-                                   (instance? java.io.InputStream body)
-                                   (ser/serializablize-input-stream))))
-      (vary-meta assoc :type ::serializable-http-request)))
+  "Transforms :body if it's an input stream."
+  [http-response]
+  (update-in http-response [:body]
+             (fn [body]
+               (cond-> body
+                 (instance? java.io.InputStream body)
+                 (ser/serializablize-input-stream)))))
 
 (defn default-arg-key-fn
   [req & more]

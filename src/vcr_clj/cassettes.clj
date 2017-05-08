@@ -2,7 +2,7 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [me.raynes.fs :as fs]
-            [vcr-clj.cassettes.serialization :refer [data-readers]]))
+            [vcr-clj.cassettes.serialization :as serialization]))
 
 (defn cassette-path [cassette-name]
   (let [[name ns] (if (keyword? cassette-name)
@@ -26,9 +26,9 @@
   [name cassette]
   (with-open [writer (-> name cassette-file io/writer)]
     (binding [*out* writer]
-      (prn cassette))))
+      (serialization/print cassette))))
 
 (defn read-cassette
   [name]
   (with-open [r (java.io.PushbackReader. (io/reader (cassette-file name)))]
-    (edn/read {:readers data-readers} r)))
+    (edn/read {:readers serialization/data-readers} r)))

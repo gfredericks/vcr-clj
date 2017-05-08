@@ -84,14 +84,17 @@
   (fs/mkdir "cassettes")
   ;; this won't work if we change the cassette format; might be able
   ;; to do a regular ring server??
-  (spit "cassettes/foob.clj" (pr-str {:calls
-                                      [{:var-name "clj-http.core/request"
-                                        :arg-key {:uri "/hoot"
-                                                  :server-name "localhost"
-                                                  :server-port 28366
-                                                  :query-string nil
-                                                  :request-method :get}
-                                        :return gzipp'd-response}]}))
+  (spit "cassettes/foob.clj"
+        (with-out-str
+          (vcr-clj.cassettes.serialization/print
+           {:calls
+            [{:var-name "clj-http.core/request"
+              :arg-key {:uri "/hoot"
+                        :server-name "localhost"
+                        :server-port 28366
+                        :query-string nil
+                        :request-method :get}
+              :return gzipp'd-response}]})))
   (with-cassette :foob
     (is (= "[]" (get "/hoot")))))
 

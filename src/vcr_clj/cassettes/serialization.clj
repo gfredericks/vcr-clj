@@ -1,31 +1,20 @@
 (ns vcr-clj.cassettes.serialization
   "Code for printing and reading things."
+  (:refer-clojure :exclude [print])
   (:require [clojure.data.codec.base64 :as b64]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [puget.printer :as printer]))
 
 ;; Support serialization for the HeaderMap type when it is around
-(try (require 'clj-http.headers)
-     (let [constructor @(resolve 'clj-http.headers/header-map)]
-       (defmethod print-method ::clj-http-header-map
-         [{hm :m} pw]
-         (.write pw "#vcr-clj/clj-http-header-map (")
-         (doseq [k (keys hm)
-                 :let [v (get hm k)]]
-           (.write pw " ")
-           (print-method k pw)
-           (.write pw " ")
-           (print-method v pw))
-         (.write pw ")"))
-       (defn read-clj-http-header-map
-         [args]
-         (apply constructor args))
-       (defn serializablize-clj-http-header-map
-         "Given a clj-http HeaderMap object, returns a wrapper that will
-         serialize to a tagged edn representation that roundtrips back to
-         a HeaderMap."
-         [m]
-         (with-meta {:m m} {:type ::clj-http-header-map})))
-     (catch Throwable t))
+(def ^:private clj-http-header-class?
+  (try (require 'clj-http.headers)
+       (let [constructor @(resolve 'clj-http.headers/header-map)]
+         (defn read-clj-http-header-map
+           [m]
+           (apply constructor (apply concat m))))
+       true
+       (catch Throwable t
+         false)))
 
 (defn split-bytes [^bytes ba maxl]
   (let [l (alength ba)]
@@ -44,19 +33,6 @@
   (if (empty? s)
     (.getBytes "")
     (b64/decode (.getBytes s))))
-
-(defn write-bytes [ba ^java.io.Writer pw ^String tag]
-  (doto pw
-    (.append tag)
-    (.append " [\n"))
-  (doseq [line (split-bytes (b64/encode ba) 75)]
-    (print-method line pw)
-    (.append pw \newline))
-  (.append pw "]"))
-
-(defmethod print-method (type (byte-array 2))
-  [ba pw]
-  (write-bytes ba pw "#vcr-clj/bytes"))
 
 (defn slurp-bytes
   "Consumes an input stream and returns a byte array of its contents."
@@ -84,10 +60,6 @@
       ;; for the print-method multimethod below
       (meta [] {:type ::serializable-input-stream}))))
 
-(defmethod print-method ::serializable-input-stream
-  [x pw]
-  (write-bytes @x pw "#vcr-clj/input-stream"))
-
 (defn read-input-stream
   [hex-str]
   (-> hex-str
@@ -106,3 +78,41 @@
   {'vcr-clj/bytes               (comp str->bytes maybe-join)
    'vcr-clj/input-stream        (comp read-input-stream maybe-join)
    'vcr-clj/clj-http-header-map read-clj-http-header-map})
+
+(def print-handlers
+  (some-fn
+   (cond-> {(class (byte-array 0))
+            (printer/tagged-handler
+             'vcr-clj/bytes
+             (fn [ba]
+               (split-bytes (b64/encode ba) 75)))}
+     clj-http-header-class?
+     (merge
+      (eval '{clj_http.headers.HeaderMap
+              (printer/tagged-handler
+               'vcr-clj/clj-http-header-map
+               #(into {} %))})))
+   (fn [cls]
+     (if (isa? cls java.io.ByteArrayInputStream)
+       (printer/tagged-handler
+        'vcr-clj/input-stream
+        (fn [is]
+          (when-not (= ::serializable-input-stream (type is))
+            (throw (Exception. "Unexpected ByteArrayInputStream!")))
+          (split-bytes (b64/encode @is) 75)))))))
+
+(def ^:private puget-options
+  {:escape-types       nil,
+   :map-coll-separator " ",
+   :map-delimiter      ",",
+   :print-color        false,
+   :print-fallback     :print,
+   :print-handlers     print-handlers
+   :print-meta         false,
+   :sort-keys          true,
+   :strict             false,
+   :width              80})
+
+(defn print
+  [cassette]
+  (printer/pprint cassette puget-options))
