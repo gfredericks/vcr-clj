@@ -1,7 +1,7 @@
 (ns vcr-clj.cassettes
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [fs.core :as fs]
+            [me.raynes.fs :as fs]
             [vcr-clj.cassettes.serialization :refer [data-readers]]))
 
 (defn cassette-path [cassette-name]

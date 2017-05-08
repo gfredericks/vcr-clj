@@ -1,7 +1,7 @@
 (defproject com.gfredericks/vcr-clj "0.4.13-SNAPSHOT"
   :description "HTTP recording/playback for Clojure"
   :dependencies [[org.clojure/data.codec "0.1.0"]
-                 [fs "1.3.3"]]
+                 [me.raynes/fs "1.4.6"]]
   :deploy-repositories [["releases" :clojars]]
   :profiles {:dev [:test-deps-without-clj-http :clj-http-101
                    :clojure-17]

@@ -1,5 +1,5 @@
 (ns vcr-clj.test.helpers
-  (:require [fs.core :as fs]))
+  (:require [me.raynes.fs :as fs]))
 
 (def delete-cassettes-after-test
   (fn [test]

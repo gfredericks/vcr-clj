@@ -2,7 +2,7 @@
   (:refer-clojure :exclude [get])
   (:require [clj-http.client :as client]
             [clojure.test :refer :all]
-            [fs.core :as fs]
+            [me.raynes.fs :as fs]
             [ring.adapter.jetty :as jetty]
             [ring.util.response :as resp]
             [vcr-clj.cassettes.serialization :refer [str->bytes]]
