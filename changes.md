@@ -1,5 +1,14 @@
 # vcr-clj changes
 
+## 0.4.13 2017-05-08
+
+- Start pretty-printing cassettes with the
+  [puget](https://github.com/greglook/puget/) library.
+  - also stops extending `print-method` for byte arrays
+    which was a terrible idea
+- Write `:recorded-at` key to the cassette
+- Upgrade the `fs` library
+
 ## 0.4.12 2017-04-18
 
 Add `clj-http.vcr-clj/default-spec`.
