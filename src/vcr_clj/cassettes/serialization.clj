@@ -5,13 +5,30 @@
             [clojure.string :as string]
             [puget.printer :as printer]))
 
+(def ^:dynamic *warn?* true)
+
 ;; Support serialization for the HeaderMap type when it is around
 (def ^:private clj-http-header-class?
   (try (require 'clj-http.headers)
        (let [constructor @(resolve 'clj-http.headers/header-map)]
          (defn read-clj-http-header-map
            [m]
-           (apply constructor (apply concat m))))
+           (cond
+             (map? m)
+             (apply constructor (apply concat m))
+
+             (coll? m)
+             (do
+               (when *warn?*
+                 (binding [*out* *err*]
+                   (println "Warning: cassette has old format for header map, please re-record")))
+               (apply constructor m))
+
+             :else
+             (throw (ex-info
+                     "Cannot parse #vcr-clj/clj-http-header-map tag in cassette (map expected)"
+                     {:value m}))
+             )))
        true
        (catch Throwable t
          false)))
