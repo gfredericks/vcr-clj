@@ -1,5 +1,11 @@
 # vcr-clj changes
 
+## 0.4.14 2017-05-09
+
+- Add backwards-compatible support (with a warning) for the old
+  cassette format so users upgrading from <= 0.4.12 won't be forced to
+  re-record.
+
 ## 0.4.13 2017-05-08
 
 - Start pretty-printing cassettes with the
@@ -8,6 +14,9 @@
     which was a terrible idea
 - Write `:recorded-at` key to the cassette
 - Upgrade the `fs` library
+- Cassette data format changed slightly:
+  #vcr-clj/clj-http-header-map values are now maps instead
+  of sequences
 
 ## 0.4.12 2017-04-18
 
