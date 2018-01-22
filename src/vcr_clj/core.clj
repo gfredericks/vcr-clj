@@ -21,10 +21,11 @@
   true)
 
 (defn ^:private build-wrapped-fn
-  [record-fn {:keys [var arg-transformer arg-key-fn recordable? return-transformer]
+  [record-fn {:keys [var arg-transformer arg-key-fn recordable? return-transformer bypass-fn]
               :or {arg-transformer vector
                    arg-key-fn vector
                    recordable? (constantly true)
+                   bypass-fn identity
                    return-transformer identity}}]
   (let [orig-fn (deref var)
         the-var-name (var-name var)
@@ -38,6 +39,7 @@
                                   :arg-key (apply arg-key-fn args*)
                                   :return res}]
                         (record-fn call)
+                        (bypass-fn res)
                         res))))]
     (add-meta-from wrapped orig-fn)))
 
@@ -94,19 +96,22 @@
   (let [the-playbacker (playbacker cassette :key)
         redeffings
         (into {}
-              (for [{:keys [var arg-transformer arg-key-fn recordable?]
+              (for [{:keys [var arg-transformer arg-key-fn recordable? bypass-fn]
                      :or {arg-transformer vector
                           arg-key-fn vector
+                          bypass-fn identity
                           recordable? (constantly true)}}
                     specs
                     :let [orig (deref var)
                           the-var-name (var-name var)
                           wrapped (fn [& args]
-                                    (let [args* (apply arg-transformer args)]
+                                    (let [res (let [args* (apply arg-transformer args)]
                                       (if (apply recordable? args*)
                                         (let [k (apply arg-key-fn args*)]
                                           (:return (the-playbacker the-var-name k)))
-                                        (apply orig args*))))]]
+                                        (apply orig args*))) ]
+                                      (bypass-fn res)
+                                      res))]]
                 [var (add-meta-from wrapped orig)]))]
     (with-redefs-fn redeffings func)))
 

@@ -155,3 +155,18 @@
           (.join))
         (is (= 2 (count (calls increment))))
         (is (= 100 @p))))))
+
+(defn some-bypass-fn [result]
+  (is (= 5 result))
+  result)
+
+(deftest bypass-test
+  (with-spy [plus some-bypass-fn]
+    (with-cassette :my [{:var #'plus :bypass-fn some-bypass-fn}]
+      (is (= 5 (plus 2 3)))
+      (is (= 1 (count (calls plus))))
+      (is (= 1 (count (calls some-bypass-fn)))))
+    (with-cassette :my [{:var #'plus :bypass-fn some-bypass-fn}]
+      (is (= 5 (plus 2 3)))
+      (is (= 1 (count (calls plus))))
+      (is (= 2 (count (calls some-bypass-fn)))))))
