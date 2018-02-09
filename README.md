@@ -94,8 +94,6 @@ Each var that is recorded can be customized with options:
   function. This can be useful for ensuring serializability. The transformed
   return value ought to be equivalent to the original return value for the
   purpose of the code under test. The default is `clojure.core/identity`.
-- `:bypass-fn`: A function, which called while recording/playback with recorded
-  function result as argument.
 
 ## TODO
 
