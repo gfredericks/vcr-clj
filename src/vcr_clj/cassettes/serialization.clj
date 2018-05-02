@@ -57,7 +57,9 @@
   (let [baos (java.io.ByteArrayOutputStream.)]
     (loop [b (.read is)]
       (if (neg? b)
-        (.toByteArray baos)
+        (do
+          (.close is)
+          (.toByteArray baos))
         (do (.write baos b)
             (recur (.read is)))))))
 ;;

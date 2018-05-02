@@ -10,7 +10,10 @@
              :test-deps-without-clj-http
              [:clojure-17
               {:dependencies [[bond "0.2.5"]
-                              [ring/ring-jetty-adapter "1.1.2"]]}]
+                              ;; need recent jetty to get gzip, I guess :/
+                              [org.eclipse.jetty/jetty-server "9.3.3.v20150827"]
+                              [ring/ring-jetty-adapter "1.6.3"
+                               :exclusions [org.eclipse.jetty/jetty-server]]]}]
              :clj-http-370 {:dependencies [[clj-http "3.7.0"]]}
              :clj-http-341 {:dependencies [[clj-http "3.4.1"]]}
              :clj-http-230 {:dependencies [[clj-http "2.3.0"]]}

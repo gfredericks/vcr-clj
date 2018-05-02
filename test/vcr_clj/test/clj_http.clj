@@ -1,34 +1,49 @@
 (ns vcr-clj.test.clj-http
   (:refer-clojure :exclude [get])
   (:require [clj-http.client :as client]
+            [clj-http.conn-mgr :as conn-mgr]
             [clojure.test :refer :all]
             [me.raynes.fs :as fs]
             [ring.adapter.jetty :as jetty]
             [ring.util.response :as resp]
             [vcr-clj.cassettes.serialization :refer [str->bytes]]
             [vcr-clj.clj-http :refer [with-cassette]]
-            [vcr-clj.test.helpers :as help]))
+            [vcr-clj.test.helpers :as help])
+  (:import [org.eclipse.jetty.server.handler.gzip GzipHandler]))
 
 (use-fixtures :each help/delete-cassettes-after-test)
 
 (def ^:dynamic *server-requests* nil)
 (defn server-requests [] @*server-requests*)
 
+(defn add-gzip-handler [server]
+  (.setHandler server
+               (doto (GzipHandler.)
+                 (.setHandler (.getHandler server)))))
+
 (defn with-jetty-server-fn
-  [ring-server func]
-  (let [a (atom [])
+  [handler-or-opts func]
+  (let [{:keys [handler gzip?]} (if (map? handler-or-opts)
+                                  handler-or-opts
+                                  {:handler handler-or-opts})
+        a (atom [])
         ring-server (fn [req]
                       (swap! a conj req)
-                      (ring-server req))
-        server (jetty/run-jetty ring-server {:join? false :port 28366})]
+                      (handler req))
+        server (jetty/run-jetty ring-server
+                                (cond->
+                                    {:join? false
+                                     :port 28366}
+                                  gzip?
+                                  (assoc :configurator add-gzip-handler)))]
     (try (binding [*server-requests* a]
            (func))
          (finally
            (.stop server)))))
 
 (defmacro with-jetty-server
-  [server & body]
-  `(with-jetty-server-fn ~server (fn [] ~@body)))
+  [handler-or-opts & body]
+  `(with-jetty-server-fn ~handler-or-opts (fn [] ~@body)))
 
 (def hehe-okay-server (constantly {:body "haha"
                                    :status 200
@@ -162,3 +177,25 @@
         :opts m
         (is (= "3" (get "/foo")))
         (is (= "4" (get "/foo")))))))
+
+;; Regression test for a problem caused by failing to close the input
+;; streams; rather tricky to reproduce
+;; https://github.com/gfredericks/vcr-clj/issues/25
+
+(defn long-body-server
+  [req]
+  {:status 200
+   :headers {}
+   :body (java.io.SequenceInputStream.
+          (clojure.lang.SeqEnumeration.
+           (for [n (range 1000)]
+             (java.io.ByteArrayInputStream. (.getBytes (str n))))))})
+
+(deftest with-connection-manager
+  (with-jetty-server {:handler long-body-server :gzip? true}
+    (let [mgr (conn-mgr/make-reusable-conn-manager {})]
+      (with-cassette :with-connection-manager
+        (dotimes [n 10]
+          (is (re-matches #"\d+"
+                          (:body (client/get "http://localhost:28366/foo"
+                                             {:connection-manager mgr})))))))))
