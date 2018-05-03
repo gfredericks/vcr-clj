@@ -19,13 +19,18 @@
   (cond-> m (not (contains? m k)) (assoc k v)))
 
 (defn serializablize
-  "Transforms :body if it's an input stream."
+  "Modifies the response to ensure it can safely be serialized and
+  returned."
   [http-response]
-  (update-in http-response [:body]
-             (fn [body]
-               (cond-> body
-                 (instance? java.io.InputStream body)
-                 (ser/serializablize-input-stream)))))
+  (-> http-response
+      (update-in [:body]
+                 (fn [body]
+                   (cond-> body
+                     (instance? java.io.InputStream body)
+                     (ser/serializablize-input-stream))))
+      (cond-> (instance? org.apache.http.client.HttpClient
+                         (get http-response :http-client))
+        (assoc :http-client "-- clj-http cannot serialize instances of org.apache.http.client.HttpClient --"))))
 
 (defn default-arg-key-fn
   [req & more]

@@ -14,6 +14,7 @@
                               [org.eclipse.jetty/jetty-server "9.3.3.v20150827"]
                               [ring/ring-jetty-adapter "1.6.3"
                                :exclusions [org.eclipse.jetty/jetty-server]]]}]
+             :clj-http-390 {:dependencies [[clj-http "3.9.0"]]}
              :clj-http-370 {:dependencies [[clj-http "3.7.0"]]}
              :clj-http-341 {:dependencies [[clj-http "3.4.1"]]}
              :clj-http-230 {:dependencies [[clj-http "2.3.0"]]}
@@ -28,6 +29,7 @@
   :aliases {"test-all-clj-https"
             ^{:doc "Runs tests on all listed versions of clj-http."}
             ["do"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-390" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-370" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-341" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-230" "test,"
