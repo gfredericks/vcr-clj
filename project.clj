@@ -23,7 +23,8 @@
              :clj-http-077 {:dependencies [[clj-http "0.7.7"]]}
              :clj-http-053 {:dependencies [[clj-http "0.5.3"]]}
              :clojure-17   {:dependencies [[org.clojure/clojure "1.7.0"]]}
-             :clojure-18   {:dependencies [[org.clojure/clojure "1.8.0"]]}}
+             :clojure-18   {:dependencies [[org.clojure/clojure "1.8.0"]]}
+             :clojure-19   {:dependencies [[org.clojure/clojure "1.9.0"]]}}
   :aliases {"test-all-clj-https"
             ^{:doc "Runs tests on all listed versions of clj-http."}
             ["do"
@@ -40,4 +41,5 @@
             "ci"
             ["do"
              "test-all-clj-https,"
-             "with-profile" "-clojure-17,+clojure-18" "test-all-clj-https"]})
+             "with-profile" "-clojure-17,+clojure-18" "test-all-clj-https,"
+             "with-profile" "-clojure-17,+clojure-19" "test-all-clj-https"]})
