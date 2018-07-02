@@ -1,5 +1,10 @@
 # vcr-clj changes
 
+## 0.4.16 2018-07-02
+
+- Changes default cassette file extension from .clj to .edn; old files
+  should still work.
+
 ## 0.4.15 2018-05-03
 
 - Fixed [bug](https://github.com/gfredericks/vcr-clj/issues/25) that
