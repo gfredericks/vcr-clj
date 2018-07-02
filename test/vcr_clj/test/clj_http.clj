@@ -57,16 +57,16 @@
 
 (deftest basic-test
   (with-jetty-server hehe-okay-server
-    (is (not (fs/exists? "cassettes/foo.clj")))
+    (is (not (fs/exists? "cassettes/foo.edn")))
     (let [f (fn []
               (with-cassette :foo
                 (is (= "haha" (get "/haha")))))]
       (is (empty? (server-requests)))
       (f)
-      (is (fs/exists? "cassettes/foo.clj"))
+      (is (fs/exists? "cassettes/foo.edn"))
       (is (= 1 (count (server-requests))))
       (f)
-      (is (fs/exists? "cassettes/foo.clj"))
+      (is (fs/exists? "cassettes/foo.edn"))
       (is (= 1 (count (server-requests)))))))
 
 (defn echo-server
