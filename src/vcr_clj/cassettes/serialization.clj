@@ -27,8 +27,8 @@
              :else
              (throw (ex-info
                      "Cannot parse #vcr-clj/clj-http-header-map tag in cassette (map expected)"
-                     {:value m}))
-             )))
+                     {:value m})))))
+
        true
        (catch Throwable t
          false)))
@@ -98,7 +98,7 @@
    'vcr-clj/input-stream        (comp read-input-stream maybe-join)
    'vcr-clj/clj-http-header-map read-clj-http-header-map})
 
-(def print-handlers
+(def default-print-handlers
   (some-fn
    (cond-> {(class (byte-array 0))
             (printer/tagged-handler
@@ -126,12 +126,13 @@
    :map-delimiter      ",",
    :print-color        false,
    :print-fallback     :print,
-   :print-handlers     print-handlers
    :print-meta         false,
    :sort-keys          true,
    :strict             false,
    :width              80})
 
 (defn print
-  [cassette]
-  (printer/pprint cassette puget-options))
+  [cassette & [{:keys [print-handlers]
+                :or {print-handlers default-print-handlers}}]]
+  (printer/pprint cassette (merge puget-options
+                                  {:print-handlers print-handlers})))
