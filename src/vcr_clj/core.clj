@@ -140,7 +140,7 @@
 
      :arg-transformer
                   a function with the same arg signature as the var,
-                  which is expected to returns a vector of equivalent
+                  which is expected to return a vector of equivalent
                   arguments. During recording/playback, the original
                   arguments to the function call are passed through this
                   transformer, and the transformed arguments are passed
