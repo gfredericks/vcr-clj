@@ -132,7 +132,27 @@
         return))))
 
 (defmacro with-cassette
-  "Each spec is:
+  "Runs the given body with a cassette defined by the given cassette data and
+  a list of specs.
+
+  Cassette data can be either the full name of the cassette or a map defining
+  the cassette data.
+  {
+   :name           a required key specifying the full name of the cassette.
+   :serialization  optional map defining serialization settings for the cassette
+       :print-handlers a function that overrides the built-in function at
+                       `vcr-clj.cassettes.serialization/default-print-handlers`.
+                       The function determines how complex Java objects are
+                       saved in the cassette. See the puget docs on type extensions
+                       for more details.
+       :data-readers   map that merges over the defaults at
+                       `vcr-clj.cassettes.serialization/data-readers`.
+                       This mapping determines how the serialized Java objects in
+                       the saved cassette are converted back to the original Java
+                       objects. See Clojure's EDN docs for more details.
+  }
+
+  Each spec is:
     {
      :var a var
 
@@ -159,22 +179,7 @@
                   while recording, which can be useful for doing things
                   like ensuring serializability.
     }"
-  [cname specs & body]
-  `(with-cassette-fn* ~cname ~specs (fn [] ~@body)))
-
-(defmacro with-cassette-serialization
-  "Spec follows the same format as described in `with-cassette`. In addition,
-  you can specify serialization options
-
-  :print-handlers a function that overrides the built-in function at
-                  `vcr-clj.cassettes.serialization/default-print-handlers`.
-                  The function determines how complex Java objects are
-                  saved in the cassette. See the puget docs on type extensions
-                  for more details.
-  :data-readers   map that merges over the defaults at
-                  `vcr-clj.cassettes.serialization/data-readers`.
-                  This mapping determines how the serialized Java objects in
-                  the saved cassette are converted back to the original Java
-                  objects. See Clojure's EDN docs for more details."
-  [cname specs serialization & body]
-  `(with-cassette-fn* ~cname ~specs (fn [] ~@body) serialization))
+  [cdata specs & body]
+  `(let [cname# (if (map? ~cdata) (:name ~cdata) ~cdata)
+         opts# (when (map? ~cdata) ~cdata)]
+     (with-cassette-fn* cname# ~specs (fn [] ~@body) opts#)))
