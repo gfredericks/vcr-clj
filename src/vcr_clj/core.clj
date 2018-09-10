@@ -121,6 +121,8 @@
 (defn with-cassette-fn*
   [{:keys [name serialization] :as cassette-data} specs func]
   (let [cassette-name (or name cassette-data)]
+    (when-not (or (string? cassette-name) (keyword? cassette-name))
+      (throw (ex-info "No valid cassette name given" {:invalid cassette-name})))
     (if (cassette-exists? cassette-name)
       (do
         (println' "Running test with existing" cassette-name "cassette...")

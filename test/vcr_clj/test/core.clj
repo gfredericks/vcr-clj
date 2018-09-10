@@ -33,6 +33,12 @@
       (is (thrown? clojure.lang.ExceptionInfo
             (plus 3 4))))))
 
+(deftest name-validation-test
+  (is (thrown? clojure.lang.ExceptionInfo
+        (with-cassette {:bame "typo-in-name"} [{:var #'plus}])))
+  (is (thrown? clojure.lang.ExceptionInfo
+        (with-cassette {:name 'vcr-clj.core/symbol-not-allowed} [{:var #'plus}]))))
+
 (deftest two-vars-test
   (with-spy [plus increment]
     (is (empty? (calls plus)))
