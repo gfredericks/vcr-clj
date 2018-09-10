@@ -119,17 +119,18 @@
   (when *verbose?* (apply println args)))
 
 (defn with-cassette-fn*
-  [cassette-name specs func & [{:keys [serialization]}]]
-  (if (cassette-exists? cassette-name)
-    (do
-      (println' "Running test with existing" cassette-name "cassette...")
-      (playback specs (read-cassette cassette-name serialization) func))
-    (do
-      (println' "Recording new" cassette-name "cassette...")
-      (let [[return cassette] (record specs func)]
-        (println' "Serializing...")
-        (write-cassette cassette-name cassette serialization)
-        return))))
+  [{:keys [name serialization] :as cassette-data} specs func]
+  (let [cassette-name (or name cassette-data)]
+    (if (cassette-exists? cassette-name)
+      (do
+        (println' "Running test with existing" cassette-name "cassette...")
+        (playback specs (read-cassette cassette-name serialization) func))
+      (do
+        (println' "Recording new" cassette-name "cassette...")
+        (let [[return cassette] (record specs func)]
+          (println' "Serializing...")
+          (write-cassette cassette-name cassette serialization)
+          return)))))
 
 (defmacro with-cassette
   "Runs the given body with a cassette defined by the given cassette data and
@@ -180,6 +181,4 @@
                   like ensuring serializability.
     }"
   [cdata specs & body]
-  `(let [cname# (if (map? ~cdata) (:name ~cdata) ~cdata)
-         opts# (when (map? ~cdata) ~cdata)]
-     (with-cassette-fn* cname# ~specs (fn [] ~@body) opts#)))
+  `(with-cassette-fn* ~cdata ~specs (fn [] ~@body)))

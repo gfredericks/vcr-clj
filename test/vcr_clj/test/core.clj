@@ -124,13 +124,15 @@
     (serialization/default-print-handlers cls)))
 
 (deftest cassette-data-test
-  (with-spy [java-obj]
+  (with-spy [java-obj serialization/print]
     (with-cassette
       {:name :boom
        :serialization {:print-handlers test-print-handlers}}
       [{:var #'java-obj}]
       (is (instance? java.io.InputStream (java-obj 3)))
-      (is (= 1 (count (calls java-obj)))))))
+      (is (= 1 (count (calls java-obj)))))
+    (is (= {:print-handlers test-print-handlers}
+           (-> (calls serialization/print) first :args second)))))
 
 (defn self-caller
   "Multi-arity function that calls itself when called with one argument"

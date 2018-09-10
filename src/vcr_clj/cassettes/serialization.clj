@@ -133,6 +133,7 @@
 
 (defn print
   [cassette & [{:keys [print-handlers]
-                :or {print-handlers default-print-handlers}}]]
-  (printer/pprint cassette (merge puget-options
-                                  {:print-handlers print-handlers})))
+                :or {print-handlers (fn [& _] false)}}]]
+  (let [merged-print-handlers (some-fn print-handlers default-print-handlers)]
+    (printer/pprint cassette (merge puget-options
+                                    {:print-handlers merged-print-handlers}))))

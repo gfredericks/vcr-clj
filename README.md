@@ -111,7 +111,7 @@ vcr-clj uses [Puget](https://github.com/greglook/puget) for storing cassettes
 on disk. The `:serialization` cassette key allows clients to customize the
 default configuration. The options available are:
 
-- `:print-handlers`: a function that replaces the
+- `:print-handlers`: a function that takes precedence over the
 [built-in function](https://github.com/gfredericks/vcr-clj/blob/e8efe21de72e001e846aacd241f8ae2aaacb4f55/src/vcr_clj/cassettes/serialization.clj#L101)
 for converting the cassette output to serializable data. See
 [Puget's documentation](https://github.com/greglook/puget#type-extensions) for
@@ -139,13 +139,11 @@ using the default base64 encoding.
   "Print handler for vcr-clj library. Enables support of additional object
   instances alongside vcr-clj defaults."
   [cls]
-  (if (isa? cls byte-array-class)
+  (when (isa? cls byte-array-class)
     (printer/tagged-handler
       'my.project/printable-bytes
       (fn [data]
-        (vcr-ser/split-bytes data 75)))
-
-    (vcr-ser/default-print-handlers cls)))
+        (vcr-ser/split-bytes data 75)))))
 
 (deftest here-is-my-bytes-test
   (with-cassette {:name :testaroo
