@@ -155,3 +155,32 @@
           (.join))
         (is (= 2 (count (calls increment))))
         (is (= 100 @p))))))
+
+
+(deftest middleware-test
+  (defn args-test [args]
+    (is (= '(2 3) args)))
+
+  (defn res-test [res]
+    (is (= 5 res)))
+
+  (defn sample-middleware [vcr-clj-fn]
+    (fn [& args]
+      (args-test args)
+      (let [res (apply vcr-clj-fn args)]
+        (res-test res)
+        res)))
+
+  (with-spy [plus sample-middleware args-test res-test]
+    (with-cassette :middlewared [{:var #'plus :middleware sample-middleware}]
+      (is (= 5 (plus 2 3)))
+      (is (= 1 (count (calls plus))))
+      (is (= 1 (count (calls sample-middleware))))
+      (is (= 1 (count (calls args-test))))
+      (is (= 1 (count (calls res-test)))))
+    (with-cassette :middlewared [{:var #'plus :middleware sample-middleware}]
+      (is (= 5 (plus 2 3)))
+      (is (= 1 (count (calls plus))))
+      (is (= 2 (count (calls sample-middleware))))
+      (is (= 2 (count (calls args-test))))
+      (is (= 2 (count (calls res-test)))))))

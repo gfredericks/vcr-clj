@@ -21,10 +21,12 @@
   true)
 
 (defn ^:private build-wrapped-fn
-  [record-fn {:keys [var arg-transformer arg-key-fn recordable? return-transformer]
+  [record-fn {:keys [var arg-transformer arg-key-fn recordable? return-transformer middleware]
               :or {arg-transformer vector
                    arg-key-fn vector
                    recordable? (constantly true)
+                   middleware (fn [f]
+                                (fn [& args] (apply f args)))
                    return-transformer identity}}]
   (let [orig-fn (deref var)
         the-var-name (var-name var)
@@ -33,7 +35,7 @@
                     (if-not (and *recording?* (apply recordable? args*))
                       (apply orig-fn args*)
                       (let [res (binding [*recording?* false]
-                                  (return-transformer (apply orig-fn args*)))
+                                  (return-transformer (apply (middleware orig-fn) args*)))
                             call {:var-name the-var-name
                                   :arg-key (apply arg-key-fn args*)
                                   :return res}]
@@ -94,9 +96,11 @@
   (let [the-playbacker (playbacker cassette :key)
         redeffings
         (into {}
-              (for [{:keys [var arg-transformer arg-key-fn recordable?]
+              (for [{:keys [var arg-transformer arg-key-fn recordable? middleware]
                      :or {arg-transformer vector
                           arg-key-fn vector
+                          middleware (fn [f]
+                                       (fn [& args] (apply f args)))
                           recordable? (constantly true)}}
                     specs
                     :let [orig (deref var)
@@ -104,9 +108,10 @@
                           wrapped (fn [& args]
                                     (let [args* (apply arg-transformer args)]
                                       (if (apply recordable? args*)
-                                        (let [k (apply arg-key-fn args*)]
-                                          (:return (the-playbacker the-var-name k)))
-                                        (apply orig args*))))]]
+                                        (let [k (apply arg-key-fn args*)
+                                              res (:return (the-playbacker the-var-name k))]
+                                          (apply (middleware (fn [& args] res)) args*))
+                                        (apply (middleware orig) args*))))]]
                 [var (add-meta-from wrapped orig)]))]
     (with-redefs-fn redeffings func)))
 
