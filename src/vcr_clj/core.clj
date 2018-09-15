@@ -119,20 +119,43 @@
   (when *verbose?* (apply println args)))
 
 (defn with-cassette-fn*
-  [cassette-name specs func]
-  (if (cassette-exists? cassette-name)
-    (do
-      (println' "Running test with existing" cassette-name "cassette...")
-      (playback specs (read-cassette cassette-name) func))
-    (do
-      (println' "Recording new" cassette-name "cassette...")
-      (let [[return cassette] (record specs func)]
-        (println' "Serializing...")
-        (write-cassette cassette-name cassette)
-        return))))
+  [{:keys [name serialization] :as cassette-data} specs func]
+  (let [cassette-name (or name cassette-data)]
+    (when-not (or (string? cassette-name) (keyword? cassette-name))
+      (throw (ex-info "No valid cassette name given" {:invalid cassette-name})))
+    (if (cassette-exists? cassette-name)
+      (do
+        (println' "Running test with existing" cassette-name "cassette...")
+        (playback specs (read-cassette cassette-name serialization) func))
+      (do
+        (println' "Recording new" cassette-name "cassette...")
+        (let [[return cassette] (record specs func)]
+          (println' "Serializing...")
+          (write-cassette cassette-name cassette serialization)
+          return)))))
 
 (defmacro with-cassette
-  "Each spec is:
+  "Runs the given body with a cassette defined by the given cassette data and
+  a list of specs.
+
+  Cassette data can be either the full name of the cassette or a map defining
+  the cassette data.
+  {
+   :name           a required key specifying the full name of the cassette.
+   :serialization  optional map defining serialization settings for the cassette
+       :print-handlers a function that overrides the built-in function at
+                       `vcr-clj.cassettes.serialization/default-print-handlers`.
+                       The function determines how complex Java objects are
+                       saved in the cassette. See the puget docs on type extensions
+                       for more details.
+       :data-readers   map that merges over the defaults at
+                       `vcr-clj.cassettes.serialization/data-readers`.
+                       This mapping determines how the serialized Java objects in
+                       the saved cassette are converted back to the original Java
+                       objects. See Clojure's EDN docs for more details.
+  }
+
+  Each spec is:
     {
      :var a var
 
@@ -159,5 +182,5 @@
                   while recording, which can be useful for doing things
                   like ensuring serializability.
     }"
-  [cname specs & body]
-  `(with-cassette-fn* ~cname ~specs (fn [] ~@body)))
+  [cdata specs & body]
+  `(with-cassette-fn* ~cdata ~specs (fn [] ~@body)))

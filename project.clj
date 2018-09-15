@@ -36,10 +36,10 @@
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-112" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-101" "test,"
              "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-091" "test,"
-             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-077" "test,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-077" "test,"]
              ;; 053 fails currently, don't feel like investigating
              ;; "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-053" "test"
-             ]
+
             "ci"
             ["do"
              "test-all-clj-https,"

@@ -34,12 +34,13 @@
   (-> name cassette-file fs/exists?))
 
 (defn write-cassette
-  [name cassette]
+  [name cassette & [opts]]
   (with-open [writer (-> name cassette-file io/writer)]
     (binding [*out* writer]
-      (serialization/print cassette))))
+      (serialization/print cassette opts))))
 
 (defn read-cassette
-  [name]
+  [name & [{:keys [data-readers]
+            :or {data-readers {}}}]]
   (with-open [r (java.io.PushbackReader. (io/reader (cassette-file name)))]
-    (edn/read {:readers serialization/data-readers} r)))
+    (edn/read {:readers (merge serialization/data-readers data-readers)} r)))

@@ -3,6 +3,8 @@
   (:require [bond.james :refer [calls with-spy]]
             [clj-http.client :as client]
             [clojure.test :refer :all]
+            [puget.printer :as printer]
+            [vcr-clj.cassettes.serialization :as serialization]
             [vcr-clj.cassettes :as cassettes]
             [vcr-clj.core :refer [with-cassette]]
             [vcr-clj.test.helpers :as help]))
@@ -13,6 +15,8 @@
 (defn plus [a b] (+ a b))
 (defn increment [x] (inc x))
 (defn put-foo [m v] (assoc m :foo v))
+(defn java-obj [val] (proxy [java.io.InputStream] []
+                       (read ([] val))))
 
 (deftest basic-test
   (with-spy [plus]
@@ -28,6 +32,12 @@
     (with-cassette :bang [{:var #'plus}]
       (is (thrown? clojure.lang.ExceptionInfo
             (plus 3 4))))))
+
+(deftest name-validation-test
+  (is (thrown? clojure.lang.ExceptionInfo
+        (with-cassette {:bame "typo-in-name"} [{:var #'plus}])))
+  (is (thrown? clojure.lang.ExceptionInfo
+        (with-cassette {:name 'vcr-clj.core/symbol-not-allowed} [{:var #'plus}]))))
 
 (deftest two-vars-test
   (with-spy [plus increment]
@@ -108,6 +118,27 @@
       (is (= [{} 42]
              (:args (first (calls put-foo)))))
       (is (-> (calls put-foo) first :args first meta :arg-transformer)))))
+
+(defn test-print-handlers
+  [cls]
+  (if (isa? cls java.io.InputStream)
+    (printer/tagged-handler
+      'vcr/inputstream
+      (fn [stream]
+        (.read stream)))
+
+    (serialization/default-print-handlers cls)))
+
+(deftest cassette-data-test
+  (with-spy [java-obj serialization/print]
+    (with-cassette
+      {:name :boom
+       :serialization {:print-handlers test-print-handlers}}
+      [{:var #'java-obj}]
+      (is (instance? java.io.InputStream (java-obj 3)))
+      (is (= 1 (count (calls java-obj)))))
+    (is (= {:print-handlers test-print-handlers}
+           (-> (calls serialization/print) first :args second)))))
 
 (defn self-caller
   "Multi-arity function that calls itself when called with one argument"
