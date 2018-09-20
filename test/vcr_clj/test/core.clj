@@ -186,3 +186,8 @@
           (.join))
         (is (= 2 (count (calls increment))))
         (is (= 100 @p))))))
+
+(deftest missing-specs-error-message-test
+  (is (thrown-with-msg? Exception #"expected a collection of specs"
+        (with-cassette :this-cassette-won't-get-recorded
+          (is (= 42 (* 2 3 7)))))))

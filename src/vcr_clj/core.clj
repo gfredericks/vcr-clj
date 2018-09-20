@@ -20,6 +20,13 @@
   ;; calls that ought to be recorded.
   true)
 
+(defn ^:private validate-specs
+  [alleged-specs]
+  (when-not (and (coll? alleged-specs)
+                 (every? map? alleged-specs))
+    (throw (ex-info "vcr-clj expected a collection of specs, but instead got this"
+                    {:not-specs alleged-specs}))))
+
 (defn ^:private build-wrapped-fn
   [record-fn {:keys [var arg-transformer arg-key-fn recordable? return-transformer]
               :or {arg-transformer vector
@@ -117,6 +124,7 @@
 
 (defn with-cassette-fn*
   [{:keys [name serialization] :as cassette-data} specs func]
+  (validate-specs specs)
   (let [cassette-name (or name cassette-data)]
     (when-not (or (string? cassette-name) (keyword? cassette-name))
       (throw (ex-info "No valid cassette name given" {:invalid cassette-name})))
