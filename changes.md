@@ -1,5 +1,12 @@
 # vcr-clj changes
 
+## 0.4.17 2018-09-20
+
+- Supports customizing serialization and deserialization of cassettes
+  (see README for details)
+- Better error messages when specs are accidentally omitted from
+  `vcr-clj.core` calls
+
 ## 0.4.16 2018-07-02
 
 - Changes default cassette file extension from .clj to .edn; old files
