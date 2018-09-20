@@ -110,9 +110,6 @@
                 [var (add-meta-from wrapped orig)]))]
     (with-redefs-fn redeffings func)))
 
-;; * TODO
-;; ** Handle streams
-
 (def ^:dynamic *verbose?* false)
 (defn println'
   [& args]
