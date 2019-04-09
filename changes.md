@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.18 2019-04-09
+
+- Upgrade deps, fixing compatibility issues with newer JVMs
+
 ## 0.4.17 2018-09-20
 
 - Supports customizing serialization and deserialization of cassettes
