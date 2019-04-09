@@ -2,7 +2,7 @@
   :description "HTTP recording/playback for Clojure"
   :dependencies [[org.clojure/data.codec "0.1.0"]
                  [me.raynes/fs "1.4.6"]
-                 [mvxcvi/puget "1.0.1"]]
+                 [mvxcvi/puget "1.1.2"]]
   :deploy-repositories [["releases" :clojars]]
   :profiles {:dev [:test-deps-without-clj-http :clj-http-101
                    :clojure-17]
