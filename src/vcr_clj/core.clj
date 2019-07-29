@@ -48,6 +48,27 @@
                         res))))]
     (add-meta-from wrapped orig-fn)))
 
+(def ^:private states (atom {}))
+
+(defn cassette-state
+  "While in the body of a with-cassette call, returns either
+  :recording or :replaying as appropriate. Otherwise returns nil."
+  []
+  (let [the-states (distinct (vals @states))]
+    (cond
+      (empty? the-states) nil
+      (= 1 (count the-states)) (first the-states)
+      :else (throw (IllegalStateException. "vcr-clj is in multiple states -- are you running several tests concurrently?")))))
+
+(defmacro ^:private with-state
+  [state & body]
+  `(let [o# (Object.)]
+     (swap! states assoc o# ~state)
+     (try
+       ~@body
+       (finally
+         (swap! states dissoc o#)))))
+
 ;; TODO: add the ability to configure whether out-of-order
 ;; calls are allowed, or repeat calls, or such and such.
 (defn record
@@ -61,7 +82,8 @@
                         (map (juxt :var (partial build-wrapped-fn record!)))
                         (into {}))
         func-return (binding [*recording?* true]
-                      (with-redefs-fn redeffings func))
+                      (with-state :recording
+                        (with-redefs-fn redeffings func)))
         cassette {:calls @calls :recorded-at recorded-at}]
     [func-return cassette]))
 
@@ -115,7 +137,8 @@
                                           (:return (the-playbacker the-var-name k)))
                                         (apply orig args*))))]]
                 [var (add-meta-from wrapped orig)]))]
-    (with-redefs-fn redeffings func)))
+    (with-state :replaying
+      (with-redefs-fn redeffings func))))
 
 (def ^:dynamic *verbose?* false)
 (defn println'
