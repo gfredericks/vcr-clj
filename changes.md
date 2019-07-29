@@ -1,5 +1,10 @@
 # vcr-clj changes
 
+## 0.4.19 2019-07-29
+
+- Added `vcr-clj.core/cassette-state`, a function that tells you if
+  you're currently recording or replaying.
+
 ## 0.4.18 2019-04-09
 
 - Upgrade deps, fixing compatibility issues with newer JVMs
