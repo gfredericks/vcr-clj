@@ -40,6 +40,25 @@
              ;; 053 fails currently, don't feel like investigating
              ;; "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-053" "test"
              ]
+            "retrieve-all-profile-deps"
+            ^{:doc "Retrieve all deps required by all profiles"}
+            ["do"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-390" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-370" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-341" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-230" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-112" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-101" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-091" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-077" "deps,"
+             "clean," "with-profile" "-dev,+test-deps-without-clj-http,+clj-http-053" "deps"
+             ]
+            "ci-deps"
+            ["do"
+             "retrieve-all-profile-deps,"
+             "with-profile" "-clojure-17,+clojure-18" "retrieve-all-profile-deps,"
+             "with-profile" "-clojure-17,+clojure-19" "retrieve-all-profile-deps"
+             ]
             "ci"
             ["do"
              "test-all-clj-https,"

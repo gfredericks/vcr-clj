@@ -24,7 +24,7 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: lein deps
+      - run: lein ci-deps
 
       - save_cache:
           paths:
@@ -32,4 +32,4 @@ jobs:
           key: v1-dependencies-{{ checksum "project.clj" }}
 
       # run tests!
-      - run: lein test
+      - run: lein ci
