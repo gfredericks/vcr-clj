@@ -1,5 +1,9 @@
 # vcr-clj changes
 
+## 0.4.20 2021-10-11
+
+- Fixes [reflection warnings](https://github.com/gfredericks/vcr-clj/pull/28)
+
 ## 0.4.19 2019-07-29
 
 - Added `vcr-clj.core/cassette-state`, a function that tells you if
