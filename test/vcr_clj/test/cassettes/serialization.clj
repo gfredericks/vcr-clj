@@ -14,9 +14,9 @@
 
 (deftest can-read-base64-bytes
   (testing "Works with empty data"
-    (is (true? (Arrays/equals (.getBytes "") (serialization/str->bytes "")))))
+    (is (true? (Arrays/equals (.getBytes "") ^bytes (serialization/str->bytes "")))))
   (testing "Works with standard data"
-    (is (true? (Arrays/equals  (.getBytes "testing") (serialization/str->bytes "dGVzdGluZw=="))))))
+    (is (true? (Arrays/equals  (.getBytes "testing") ^bytes (serialization/str->bytes "dGVzdGluZw=="))))))
 
 (deftest can-read-old-header-map-format
   (when-let [c (try

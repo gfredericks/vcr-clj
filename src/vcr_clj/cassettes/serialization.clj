@@ -33,7 +33,7 @@
        (catch Throwable t
          false)))
 
-(defn split-bytes [^bytes ba maxl]
+(defn split-bytes [^bytes ba ^long maxl]
   (let [l (alength ba)]
     (persistent!
       (loop
@@ -46,7 +46,7 @@
             (conj! acc (String. ba start-index (min maxl (- l start-index))))))))))
 
 (defn str->bytes
-  [s]
+  [^String s]
   (if (empty? s)
     (.getBytes "")
     (b64/decode (.getBytes s))))
@@ -80,7 +80,7 @@
       (meta [] {:type ::serializable-input-stream}))))
 
 (defn read-input-stream
-  [hex-str]
+  [^String hex-str]
   (-> hex-str
       .getBytes
       ;; data.codec cannot roundtrip an empty string
