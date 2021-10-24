@@ -4,8 +4,13 @@
                  [me.raynes/fs "1.4.6"]
                  [mvxcvi/puget "1.1.2"]]
   :deploy-repositories [["releases" :clojars]]
-  :profiles {:dev [:test-deps-without-clj-http :clj-http-101
-                   :clojure-17]
+  :profiles {;; I'm not sure how it happened but the 0.4.20 release
+             ;; seems to have included all the dependencies reachable
+             ;; from the dev profile, i.e.  as if `lein release` ran
+             ;; with dev profile dependencies for some reason; so I
+             ;; guess I'm just going to comment this out for now
+             #_#_:dev [:test-deps-without-clj-http :clj-http-101
+                       :clojure-17]
 
              :test-deps-without-clj-http
              [:clojure-17
