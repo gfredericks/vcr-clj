@@ -1,5 +1,11 @@
 # vcr-clj changes
 
+## 0.4.21 2021-10-24
+
+- Fixes [bad declared
+  dependencies](https://github.com/gfredericks/vcr-clj/issues/29) in
+  0.4.20
+
 ## 0.4.20 2021-10-11
 
 - Fixes [reflection warnings](https://github.com/gfredericks/vcr-clj/pull/28)
