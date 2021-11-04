@@ -1,7 +1,7 @@
 (defproject com.gfredericks/vcr-clj "0.4.22-SNAPSHOT"
   :description "HTTP recording/playback for Clojure"
   :dependencies [[org.clojure/data.codec "0.1.0"]
-                 [me.raynes/fs "1.4.6"]
+                 [clj-commons/fs "1.6.309"]
                  [mvxcvi/puget "1.1.2"]]
   :deploy-repositories [["releases" :clojars]]
   :profiles {;; I'm not sure how it happened but the 0.4.20 release
