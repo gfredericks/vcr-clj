@@ -1,5 +1,11 @@
 # vcr-clj changes
 
+## 0.4.22 2021-11-07
+
+- Swaps out [me.raynes/fs for
+  clj-commons/fs](https://github.com/gfredericks/vcr-clj/pull/31)
+  (thanks [@conormcd](https://github.com/conormcd))
+
 ## 0.4.21 2021-10-24
 
 - Fixes [bad declared

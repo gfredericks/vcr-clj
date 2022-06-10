@@ -2,7 +2,14 @@
 #
 # Check https://circleci.com/docs/2.0/language-clojure/ for more details
 #
-version: 2
+version: 2.1
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+    - build
+
 jobs:
   build:
     docker:
