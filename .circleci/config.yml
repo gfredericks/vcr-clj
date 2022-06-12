@@ -13,7 +13,7 @@ workflows:
 jobs:
   build:
     docker:
-      - image: circleci/clojure:lein-2.9.1
+      - image: cimg/clojure:1.11.1
 
     working_directory: ~/repo
 
